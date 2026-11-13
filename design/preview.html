@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asset Preview</title>
+<style>
+  @font-face { font-family: Pixelta; src: url(../public/fonts/Pixelta-Regular.woff2) format('woff2'); }
+  @font-face { font-family: 'Pixelta Rounded'; src: url(../public/fonts/Pixelta-Rounded.woff2) format('woff2'); }
+  :root { --ink: #2b2b2b; --cream: #f4efe6; --dark: #1b2a4a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--cream); color: var(--ink); font: 16px/1.4 system-ui, sans-serif; }
+  h1, h2 { font-family: Pixelta, monospace; font-weight: normal; -webkit-font-smoothing: none; }
+  h1 { font-size: 66.667px; margin: 0 0 8px; }
+  h2 { font-size: 33.333px; margin: 40px 0 12px; }
+  img, .px { image-rendering: pixelated; image-rendering: crisp-edges; }
+  .row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+  .pair { display: flex; gap: 0; }
+  .pair > div { padding: 12px; }
+  .light { background: #fff; } .dark { background: var(--dark); color: var(--cream); }
+  figure { margin: 0; } figcaption { font-size: 12px; opacity: .7; margin-top: 4px; }
+  .x4 { zoom: 4; }
+  /* cat: 3 frames of 40x26, shown at 4x */
+  .cat { width: 160px; height: 104px; background: url(../public/assets/cat-sheet.png) 0 0 / 480px 104px; animation: cat .75s steps(3) infinite; }
+  @keyframes cat { to { background-position: -480px 0; } }
+  .env { width: 256px; height: 176px; background: url(../public/assets/envelope-sheet.png) 0 0 / 1024px 176px; animation: env 2s steps(1) infinite; }
+  @keyframes env { 0% { background-position: 0 0 } 25% { background-position: -256px 0 } 50% { background-position: -512px 0 } 75%, 100% { background-position: -768px 0 } }
+  /* 9-slice letter at 4x: 8px corners -> 32px. Sizes are multiples of 32 so the stripe period tiles cleanly. */
+  .letter { border: 32px solid; border-image: url(../public/assets/letter-border.png) 8 fill / 32px repeat; image-rendering: pixelated; font-family: Pixelta; font-size: 33.333px; -webkit-font-smoothing: none; display: flex; align-items: center; justify-content: center; text-align: center; }
+  .mock { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; position: relative; background-size: cover; image-rendering: pixelated; font-family: Pixelta; -webkit-font-smoothing: none; }
+  .mock .title { font-size: 33.333px; }
+  .mock .corner { position: absolute; top: 12px; width: 32px; height: 32px; background: url(../public/assets/icons.png) 0 0 / 256px 32px; image-rendering: pixelated; }
+  .mock .btn { font-family: Pixelta; font-size: 16.667px; padding: 6px 14px 10px; border: 6px solid; border-image: url(../public/assets/button-normal.png) 3 3 4 3 fill / 6px 6px 8px 6px stretch; background: none; color: var(--ink); image-rendering: pixelated; cursor: pointer; }
+  .mock .btn:hover { border-image-source: url(../public/assets/button-hover.png); }
+  .mock .btn:active { border-image-source: url(../public/assets/button-pressed.png); }
+  /* Handwritten greeting: Pixelta + slant + per-letter wobble, red fill, cream outline.
+     1 Pixelta pixel = 0.03em, so the outline and wobble stay on the font's own pixel grid. */
+  .greet { display: inline-block; font-family: 'Pixelta Rounded', Pixelta; -webkit-font-smoothing: none; color: #c44935; transform: skewX(-12deg); line-height: 1.25;
+    /* chained 1-font-px drop-shadows = a solid 2-font-px cream outline around the whole word (no gaps, no overlap between letters) */
+    filter: drop-shadow(0.03em 0 0 #f4efe6) drop-shadow(-0.03em 0 0 #f4efe6) drop-shadow(0.03em 0 0 #f4efe6) drop-shadow(-0.03em 0 0 #f4efe6)
+            drop-shadow(0 0.03em 0 #f4efe6) drop-shadow(0 -0.03em 0 #f4efe6) drop-shadow(0 0.03em 0 #f4efe6) drop-shadow(0 -0.03em 0 #f4efe6); }
+  .greet .ch { display: inline-block; white-space: pre; transform: translateY(var(--y)) rotate(var(--r)) scale(var(--s)); }
+  @media (prefers-reduced-motion: reduce) { .cat, .env { animation: none; } }
+</style>
+</head>
+<body>
+<h1>Shake-a-Memory assets</h1>
+<p>Phase 0 preview. Assets are shown at 4× (wide sheets at 2×). Serve the project root, e.g. <code>python3 -m http.server</code>, and open /design/preview.html.</p>
+
+<h2>Globe composite</h2>
+<div class="pair"><div class="light"><img class="x4" src="globe-composite.png" alt="globe"></div><div class="dark"><img class="x4" src="globe-composite.png" alt="globe"></div></div>
+
+<h2>Every asset, light and dark</h2>
+<div id="assets"></div>
+
+<h2>Cat animation (loading + sits on the globe)</h2>
+<div class="row"><div class="cat px"></div></div>
+
+<h2>Envelope transition</h2>
+<div class="row"><div class="env px"></div></div>
+
+<h2>9-slice airmail letter at several sizes</h2>
+<div class="row">
+  <div class="letter" style="width:320px;height:192px"><span class="greet">Merry Christmas!</span></div>
+  <div class="letter" style="width:576px;height:320px;flex-direction:column"><span class="greet">Merry Christmas<br>&amp; a Happy New Year!</span><br>Love, Alyssa</div>
+  <div class="letter" style="width:256px;height:384px">portrait</div>
+</div>
+
+<h2>Backgrounds behind a mock globe screen (pick which ship)</h2>
+<div class="row" id="bgs"></div>
+
+<h2>Palette</h2>
+<img src="palette.png" alt="palette swatches">
+
+<h2>Handwritten greeting</h2>
+<p style="font-size:66.667px;margin:0 0 8px"><span class="greet">Merry Christmas &amp; a Happy New Year!</span></p>
+<p style="font-size:33.333px;margin:0;background:#1b2a4a;padding:12px"><span class="greet">Merry Christmas &amp; a Happy New Year!</span></p>
+
+<h2>Font: Pixelta at native ×1 and ×2</h2>
+<p style="font-family:Pixelta;font-size:33.333px;-webkit-font-smoothing:none;margin:0">Merry Christmas &amp; a Happy New Year! 0123456789 ’“”…</p>
+<p style="font-family:Pixelta;font-size:66.667px;-webkit-font-smoothing:none;margin:0">Love, Alyssa</p>
+
+<script>
+  // Handwritten wobble: split greeting text into letters, each with a small seeded tilt, baseline drift and size change.
+  // Seeded so it looks the same on every load (and in the GIF later). Phase 1 moves this into src/ui/.
+  function handwrite(el) {
+    let seed = 11;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    let i = 0;
+    for (const node of [...el.childNodes]) {
+      if (node.nodeType !== 3) continue;
+      const frag = document.createDocumentFragment();
+      for (const ch of node.textContent) {
+        const s = document.createElement('span');
+        s.className = 'ch';
+        s.textContent = ch;
+        const drift = Math.round(Math.sin(i * 0.6) * 1.5 + (rnd() - 0.5) * 2.5); // whole font pixels
+        s.style.setProperty('--y', `${drift * 0.03}em`);
+        s.style.setProperty('--r', `${((rnd() - 0.5) * 12).toFixed(1)}deg`);
+        s.style.marginRight = `${Math.round((rnd() - 0.4) * 2) * 0.03}em`; // uneven spacing, like a pen
+        s.style.setProperty('--s', (0.92 + rnd() * 0.16).toFixed(3));
+        s.setAttribute('aria-hidden', 'true');
+        frag.appendChild(s);
+        i++;
+      }
+      node.replaceWith(frag);
+    }
+    el.setAttribute('aria-label', el.textContent);
+  }
+  const assets = ['globe-back', 'globe-front', 'globe-base', 'tree', 'cat-sheet', 'shadow', 'snow-sheet', 'letter-border', 'letter-paper', 'envelope-sheet', 'stamp', 'button-sheet', 'icons', 'favicon-16', 'favicon-32'];
+  const box = document.getElementById('assets');
+  for (const name of assets) {
+    const img = new Image();
+    img.src = `../public/assets/${name}.png`;
+    img.onload = () => {
+      const k = img.naturalWidth > 128 ? 2 : 4; // wide sheets at 2x so the page never scrolls sideways
+      const f = document.createElement('figure');
+      f.innerHTML = `<div class="pair">${['light', 'dark'].map(c => `<div class="${c}"><img src="${img.src}" width="${img.naturalWidth * k}" height="${img.naturalHeight * k}" alt="${name}"></div>`).join('')}</div><figcaption>${name}.png — ${img.naturalWidth}×${img.naturalHeight}, shown ${k}×</figcaption>`;
+      box.appendChild(f);
+    };
+  }
+  box.className = 'row';
+  // Globe and background share one integer scale (2x here), as they will in the app.
+  const scenes = ['christmas-cabin', 'christmas-village', 'enchanted-forest', 'frozen-lake', 'northern-lights', 'winter-railway-station'];
+  for (const id of scenes) for (const [v, w, h] of [['mobile', 432, 768], ['desktop', 768, 432]]) {
+    document.getElementById('bgs').insertAdjacentHTML('beforeend', `
+      <figure><div class="mock" style="width:${w}px;height:${h}px;background-image:url(../public/assets/bg-${id}-${v}.png);color:#2b2b2b">
+        <div class="corner" style="left:12px"></div><div class="corner" style="right:12px;background-position:-32px 0"></div>
+        <div class="title"><span class="greet">Merry Christmas!</span></div>
+        <img src="globe-composite.png" width="192" height="240" alt="">
+        <div><button class="btn">Upload pic</button> <button class="btn">Shake me!</button></div>
+      </div><figcaption>${id} (${v})</figcaption></figure>`);
+  }
+  document.querySelectorAll('.greet').forEach(handwrite);
+</script>
+</body>
+</html>

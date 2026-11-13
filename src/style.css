@@ -1,0 +1,218 @@
+/* Pixelta is licensed and git-ignored (SPEC §2.1). If the file is missing, the browser falls through to Pixelify Sans. */
+@font-face {
+  font-family: Pixelta;
+  src: url('/fonts/Pixelta-Regular.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pixelta Rounded';
+  src: url('/fonts/Pixelta-Rounded.woff2') format('woff2');
+  font-display: swap;
+}
+
+:root {
+  --ink: #2b2b2b;
+  --cream: #f4efe6;
+  --cream-deep: #cdbfa8;
+  --red: #c44935;
+  /* set from JS: one UI pixel and one font pixel, in CSS px */
+  --ui: 3px;
+  --font-px: 1px;
+  --btn-font: 1px;
+  font-family: Pixelta, 'Pixelify Sans', monospace;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  color: var(--ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #2a2540;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+canvas,
+#bg,
+.icon,
+.px-btn {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#bg {
+  position: fixed;
+  inset: 0;
+  background-repeat: no-repeat;
+}
+
+#globe-screen {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+}
+
+/* Corner icon buttons: cream face, ink pixel border, icon at an integer scale. */
+.icon-btn {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 8px);
+  padding: calc(var(--ui) * 3);
+  min-width: 44px;
+  min-height: 44px;
+  background: var(--cream);
+  border: var(--ui) solid var(--ink);
+  box-shadow: inset 0 calc(var(--ui) * -1) 0 var(--cream-deep);
+  cursor: pointer;
+  line-height: 0;
+}
+.icon-btn:hover {
+  background: #fffaf2;
+}
+.icon-btn:active {
+  box-shadow: inset 0 var(--ui) 0 var(--cream-deep);
+}
+.corner-left {
+  left: calc(env(safe-area-inset-left) + 8px);
+}
+.corner-right {
+  right: calc(env(safe-area-inset-right) + 8px);
+}
+.icon {
+  display: inline-block;
+  width: calc(var(--ui) * 8);
+  height: calc(var(--ui) * 8);
+  background: url('/assets/icons.png') 0 0 / calc(var(--ui) * 64) calc(var(--ui) * 8);
+}
+.icon[data-icon='soundOn'] {
+  background-position-x: calc(var(--ui) * -8);
+}
+.icon[data-icon='soundOff'] {
+  background-position-x: calc(var(--ui) * -16);
+}
+
+/* Title: handwritten greeting (see ui/handwritten.ts). Font size = (100/3) per font pixel keeps Pixelta on its grid. */
+#title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: normal;
+  font-size: calc(var(--font-px) * 100 / 3);
+  pointer-events: none;
+}
+.greet {
+  display: inline-block;
+  font-family: 'Pixelta Rounded', Pixelta, 'Pixelify Sans', monospace;
+  color: var(--red);
+  transform: skewX(-12deg);
+  line-height: 1.25;
+  /* chained 1-font-pixel drop-shadows = a solid 2-font-pixel cream outline around the whole phrase */
+  filter: drop-shadow(0.03em 0 0 var(--cream)) drop-shadow(-0.03em 0 0 var(--cream)) drop-shadow(0.03em 0 0 var(--cream))
+    drop-shadow(-0.03em 0 0 var(--cream)) drop-shadow(0 0.03em 0 var(--cream)) drop-shadow(0 -0.03em 0 var(--cream))
+    drop-shadow(0 0.03em 0 var(--cream)) drop-shadow(0 -0.03em 0 var(--cream));
+}
+.greet .ch {
+  display: inline-block;
+  white-space: pre;
+  transform: translateY(var(--y)) rotate(var(--r)) scale(var(--s));
+}
+
+#globe {
+  position: absolute;
+  touch-action: none;
+}
+
+.actions {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Pixel button: 9-slice border-image of the code-drawn sprite (insets 3,3,4,3 art px). */
+.px-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 calc(var(--ui) * 2);
+  font-size: calc(var(--btn-font) * 100 / 3);
+  line-height: 1.1;
+  background: none;
+  border-style: solid;
+  border-width: calc(var(--ui) * 3) calc(var(--ui) * 3) calc(var(--ui) * 4);
+  border-image: url('/assets/button-normal.png') 3 3 4 3 fill / calc(var(--ui) * 3) calc(var(--ui) * 3) calc(var(--ui) * 4) stretch;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.px-btn:hover {
+  border-image-source: url('/assets/button-hover.png');
+}
+.px-btn:active {
+  border-image-source: url('/assets/button-pressed.png');
+}
+
+#footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom) + 6px);
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-size: calc(var(--btn-font) * 100 / 3);
+}
+.link {
+  background: none;
+  border: 0;
+  padding: 8px 4px;
+  min-height: 44px;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 3px;
+}
+
+dialog {
+  max-width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 20px;
+  background: var(--cream);
+  border: var(--ui) solid var(--ink);
+  font-family: system-ui, sans-serif;
+  line-height: 1.45;
+}
+dialog h2,
+dialog h3 {
+  font-family: Pixelta, 'Pixelify Sans', monospace;
+  font-weight: normal;
+}
+dialog::backdrop {
+  background: rgb(27 42 74 / 0.6);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

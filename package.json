@@ -1,0 +1,33 @@
+{
+  "name": "shake-a-memory",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "tsc --noEmit && prettier --check src tests",
+    "format": "prettier --write src tests",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "assets": "node scripts/normalise-assets.ts && node scripts/draw-assets.ts",
+    "font": "node scripts/font.ts",
+    "predeploy": "npm run lint && npm test",
+    "deploy": "vercel build && vercel deploy --prebuilt",
+    "deploy:prod": "npm run predeploy && vercel build --prod && vercel deploy --prebuilt --prod"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "opentype.js": "^2.0.0",
+    "pngjs": "^7.0.0",
+    "prettier": "^3.10.1",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.8",
+    "vitest": "^3.2.7",
+    "wawoff2": "^2.0.1"
+  },
+  "dependencies": {
+    "@fontsource/pixelify-sans": "^5.3.0"
+  }
+}

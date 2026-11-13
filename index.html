@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Shake-a-Memory</title>
+    <meta name="description" content="Put yourself in a pixel-art Christmas snowglobe, shake it, and send it as a letter." />
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png" />
+    <meta property="og:image" content="assets/og-image.png" />
+  </head>
+  <body>
+    <div id="bg" aria-hidden="true"></div>
+
+    <main id="globe-screen">
+      <button class="icon-btn corner-left" id="bg-btn" type="button" aria-label="Change background"><i class="icon" data-icon="picture"></i></button>
+      <button class="icon-btn corner-right" id="sound-btn" type="button" aria-label="Sound" aria-pressed="true"><i class="icon" data-icon="soundOn"></i></button>
+
+      <h1 id="title"><span class="greet">Merry Christmas!</span></h1>
+      <canvas id="globe" width="96" height="120" role="img" aria-label="A snowglobe with a little Christmas tree inside and a black cat sleeping on top"></canvas>
+
+      <div class="actions" id="actions">
+        <button class="px-btn" id="upload-btn" type="button">Upload pic</button>
+        <button class="px-btn" id="shake-btn" type="button">Shake me!</button>
+      </div>
+
+      <footer id="footer">
+        <button class="link" type="button" id="about-btn">About</button>
+        <a class="link" id="github-link" href="" hidden>GitHub</a>
+      </footer>
+    </main>
+
+    <dialog id="about" aria-labelledby="about-title">
+      <h2 id="about-title">Shake-a-Memory</h2>
+      <p>A cozy retro Christmas letter for yourself and friends.</p>
+      <p>A Christmas gift from me to you &lt;3</p>
+      <p>Pop a cheeky photo of yourself, your pet, or loved one into a pixel snowglobe, give it a shake, and save it as an animated GIF to share as a Christmas letter to your friends and family!</p>
+      <h3>Disclaimer</h3>
+      <div class="privacy">
+        <p><strong>Your photos stay on your device.</strong></p>
+        <p>This app runs entirely in your browser. Your photo is never uploaded, stored, or sent to me, to any AI service, or to any third party.</p>
+        <p>This uses @imgly/background-removal, which is an in-browser background removal, meaning that your images remain secure within your own devices: refreshing or closing the page clears it.</p>
+        <p>The web app only remembers your sound, song and background choices and your last message, in your own browser.</p>
+        <p>GIFs you save go only where you choose to share them.</p>
+      </div>
+      <h3>Credits</h3>
+      <p>Made by Loveaction Alyssa. Font: Pixelta by Blankids. Carols are in the public domain. Background removal by IMG.LY.</p>
+      <p>If you ever use and enjoyed this, feel free to tag me in my socials!</p>
+      <form method="dialog"><button class="px-btn" type="submit">Close</button></form>
+    </dialog>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.DS_Store
+# Pixelta is licensed: never commit it (SPEC §2.1)
+public/fonts/pixelta*
+public/fonts/Pixelta*
+SPEC.md
+fonts-local/
+test-results/
+playwright-report/
+.vercel/
