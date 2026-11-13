@@ -9,3 +9,4 @@ fonts-local/
 test-results/
 playwright-report/
 .vercel/
+.env*

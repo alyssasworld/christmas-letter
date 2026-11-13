@@ -14,8 +14,8 @@
     "assets": "node scripts/normalise-assets.ts && node scripts/draw-assets.ts",
     "font": "node scripts/font.ts",
     "predeploy": "npm run lint && npm test",
-    "deploy": "vercel build && vercel deploy --prebuilt",
-    "deploy:prod": "npm run predeploy && vercel build --prod && vercel deploy --prebuilt --prod"
+    "deploy": "vercel build --yes && vercel deploy --prebuilt",
+    "deploy:prod": "npm run predeploy && vercel build --prod --yes && vercel deploy --prebuilt --prod"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",
@@ -29,5 +29,8 @@
   },
   "dependencies": {
     "@fontsource/pixelify-sans": "^5.3.0"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }
