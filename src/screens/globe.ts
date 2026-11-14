@@ -1,7 +1,8 @@
 // Globe screen (SPEC §3.1): background, corner icons, title, globe canvas, buttons, footer.
 import { ASSETS, BACKGROUNDS, BG_VARIANTS, bgSrc } from '../assets/manifest.ts';
 import { createMusicBox } from '../audio/musicbox.ts';
-import { drawGlobe, loadGlobeImages } from '../render/globeScene.ts';
+import { mountPhotoUi } from '../photo/ui.ts';
+import { drawGlobe, loadGlobeImages, setPhoto } from '../render/globeScene.ts';
 import { layoutGlobe } from '../render/scale.ts';
 import { createSnow, shake, stepSnow, type Snow } from '../render/snow.ts';
 import { prefs } from '../state.ts';
@@ -49,6 +50,9 @@ export async function mountGlobeScreen() {
     bg.style.backgroundSize = `${css(v.w * L.bgScale)} ${css(v.h * L.bgScale)}`;
     bg.style.backgroundPosition = `${css(L.bgX)} ${css(L.bgY)}`;
 
+    // backing store at device res: every art pixel is exactly globeScale device px (this also resets the context state)
+    canvas.width = 96 * L.globeScale;
+    canvas.height = 120 * L.globeScale;
     Object.assign(canvas.style, {
       left: css(L.globeX),
       top: css(L.globeY),
@@ -98,6 +102,15 @@ export async function mountGlobeScreen() {
   const about = $<HTMLDialogElement>('about');
   $('about-btn').addEventListener('click', () => about.showModal());
 
+  const globeLabel = canvas.getAttribute('aria-label')!;
+  mountPhotoUi({
+    setPhoto: (b) => {
+      setPhoto(b);
+      canvas.setAttribute('aria-label', globeLabel.replace('inside and', 'inside, a cut-out of your photo standing in front of it, and'));
+    },
+    say: (msg) => ($('hint').textContent = msg),
+  });
+
   const img = await loadGlobeImages();
   const still = matchMedia('(prefers-reduced-motion: reduce)');
   snow = createSnow(still.matches ? 40 : 90, Math.random, still.matches);
@@ -132,7 +145,15 @@ export async function mountGlobeScreen() {
   });
   addEventListener('keydown', (e) => {
     const t = e.target as HTMLElement;
-    if (e.ctrlKey || e.metaKey || e.altKey || about.open || /^(INPUT|TEXTAREA)$/.test(t.tagName) || t.isContentEditable) return;
+    if (
+      e.ctrlKey ||
+      e.metaKey ||
+      e.altKey ||
+      document.querySelector('dialog[open]') ||
+      /^(INPUT|TEXTAREA)$/.test(t.tagName) ||
+      t.isContentEditable
+    )
+      return;
     if (e.key.toLowerCase() === 'm') soundBtn.click();
     else if (e.key.toLowerCase() === 'b') $('bg-btn').click();
   });
@@ -189,7 +210,7 @@ export async function mountGlobeScreen() {
     const tiltNow = still.matches ? 0 : Math.round(2 * Math.sin(t / 70) * Math.min(1, sim.energy * 1.5));
     if (tiltNow !== tilt) canvas.style.transform = `translateX(${(tilt = tiltNow) * tiltPx}px)`;
     music.setEnergy(sim.energy);
-    drawGlobe(ctx, img, still.matches ? 0 : Math.floor((t / 1000) * ASSETS.cat.fps), sim);
+    drawGlobe(ctx, img, canvas.width / 96, still.matches ? 0 : Math.floor((t / 1000) * ASSETS.cat.fps), sim);
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);

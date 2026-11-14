@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev": "npm run models",
     "build": "vite build",
+    "prebuild": "npm run models",
     "preview": "vite preview",
     "lint": "tsc --noEmit && prettier --check src tests",
     "format": "prettier --write src tests",
@@ -15,9 +17,11 @@
     "font": "node scripts/font.ts",
     "predeploy": "npm run lint && npm test",
     "deploy": "vercel build --yes && vercel deploy --prebuilt",
-    "deploy:prod": "npm run predeploy && vercel build --prod --yes && vercel deploy --prebuilt --prod"
+    "deploy:prod": "npm run predeploy && vercel build --prod --yes && vercel deploy --prebuilt --prod",
+    "models": "node scripts/copy-models.ts"
   },
   "devDependencies": {
+    "@imgly/background-removal-data": "1.4.5",
     "@playwright/test": "^1.65.0",
     "opentype.js": "^2.0.0",
     "pngjs": "^7.0.0",
@@ -28,7 +32,8 @@
     "wawoff2": "^2.0.1"
   },
   "dependencies": {
-    "@fontsource/pixelify-sans": "^5.3.0"
+    "@fontsource/pixelify-sans": "^5.3.0",
+    "@imgly/background-removal": "1.4.5"
   },
   "engines": {
     "node": "24.x"

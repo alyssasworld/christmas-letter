@@ -204,7 +204,7 @@ dialog {
   padding: 20px;
   background: var(--cream);
   border: var(--ui) solid var(--ink);
-  font-family: system-ui, sans-serif;
+  font-family: 'Pixelify Sans', monospace;
   line-height: 1.45;
 }
 dialog h2,
@@ -223,4 +223,75 @@ dialog::backdrop {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* Photo upload: menu, selfie camera, "Cutting you out…" overlay */
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.drop-hint {
+  display: none;
+}
+@media (any-pointer: fine) {
+  .drop-hint {
+    display: block;
+  }
+}
+#globe.drop-over {
+  outline: 3px dashed var(--red);
+  outline-offset: 3px;
+}
+.selfie-wrap {
+  position: relative;
+  margin: 8px 0;
+}
+#selfie-video {
+  display: block;
+  width: 100%;
+  max-height: 60dvh;
+  background: var(--ink);
+  transform: scaleX(-1); /* mirror like a selfie camera */
+}
+.count {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: Pixelta, 'Pixelify Sans', monospace;
+  font-size: min(30vw, 30dvh);
+  color: var(--cream);
+  text-shadow:
+    0 0 0 var(--ink),
+    4px 4px 0 var(--ink),
+    -4px 4px 0 var(--ink),
+    4px -4px 0 var(--ink),
+    -4px -4px 0 var(--ink);
+}
+#busy {
+  text-align: center;
+}
+/* the busy dialog takes focus only because it has no controls; a focus ring there reads as an error */
+#busy:focus-visible {
+  outline: none;
+}
+.cat-anim {
+  width: calc(var(--ui) * 40);
+  height: calc(var(--ui) * 26);
+  margin: 0 auto;
+  background: url('/assets/cat-sheet.png') 0 0 / calc(var(--ui) * 120) calc(var(--ui) * 26);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: cat 0.75s steps(3) infinite; /* 3 frames at 4 fps */
+}
+@keyframes cat {
+  to {
+    background-position-x: calc(var(--ui) * -120);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cat-anim {
+    animation: none;
+  }
 }

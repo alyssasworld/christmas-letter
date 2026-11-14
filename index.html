@@ -51,6 +51,32 @@
       <form method="dialog"><button class="px-btn" type="submit">Close</button></form>
     </dialog>
 
+    <dialog id="upload-menu" aria-labelledby="upload-title">
+      <h2 id="upload-title">Add a photo</h2>
+      <div class="menu">
+        <button class="px-btn" id="choose-btn" type="button">Choose a photo</button>
+        <button class="px-btn" id="selfie-btn" type="button">Take a selfie</button>
+        <button class="px-btn" id="menu-close" type="button">Cancel</button>
+      </div>
+      <p class="drop-hint">or drop a photo onto the globe</p>
+      <p>Your photo stays on your device.</p>
+    </dialog>
+    <input type="file" id="file-input" accept="image/*" hidden />
+
+    <dialog id="selfie" aria-labelledby="selfie-msg">
+      <p id="selfie-msg" role="status" aria-live="polite">Getting the camera ready…</p>
+      <div class="selfie-wrap">
+        <video id="selfie-video" playsinline muted></video>
+        <div class="count" id="selfie-count" aria-hidden="true"></div>
+      </div>
+      <button class="px-btn" id="selfie-cancel" type="button">Cancel</button>
+    </dialog>
+
+    <dialog id="busy" aria-labelledby="busy-msg">
+      <div class="cat-anim" aria-hidden="true"></div>
+      <p id="busy-msg" role="status" aria-live="polite">Cutting you out…</p>
+    </dialog>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
