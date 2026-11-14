@@ -1,4 +1,5 @@
 // Persisted preferences only (SPEC §9: never photos). Storage can throw or be empty (private mode), so every access is guarded.
+import { SONGS } from './audio/songs.ts';
 import { BACKGROUNDS } from './assets/manifest.ts';
 
 const PREFIX = 'shake-a-memory:';
@@ -32,5 +33,12 @@ export const prefs = {
   },
   set soundOn(v: boolean) {
     write('sound', v ? 'on' : 'off');
+  },
+  get song(): number {
+    const v = Number(read('song'));
+    return Number.isInteger(v) && v >= 0 && v < SONGS.length ? v : 0;
+  },
+  set song(v: number) {
+    write('song', String(v));
   },
 };

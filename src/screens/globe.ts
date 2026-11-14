@@ -1,5 +1,6 @@
 // Globe screen (SPEC §3.1): background, corner icons, title, globe canvas, buttons, footer.
 import { ASSETS, BACKGROUNDS, BG_VARIANTS, bgSrc } from '../assets/manifest.ts';
+import { createMusicBox } from '../audio/musicbox.ts';
 import { drawGlobe, loadGlobeImages } from '../render/globeScene.ts';
 import { layoutGlobe } from '../render/scale.ts';
 import { createSnow, shake, stepSnow, type Snow } from '../render/snow.ts';
@@ -80,6 +81,7 @@ export async function mountGlobeScreen() {
     layout();
   });
 
+  const music = createMusicBox();
   const soundBtn = $('sound-btn');
   const renderSound = () => {
     const on = prefs.soundOn;
@@ -89,6 +91,7 @@ export async function mountGlobeScreen() {
   soundBtn.addEventListener('click', () => {
     prefs.soundOn = !prefs.soundOn;
     renderSound();
+    music.setSound(prefs.soundOn);
   });
   renderSound();
 
@@ -185,6 +188,7 @@ export async function mountGlobeScreen() {
     // dome tilt: whole art px so the canvas stays pixel-aligned
     const tiltNow = still.matches ? 0 : Math.round(2 * Math.sin(t / 70) * Math.min(1, sim.energy * 1.5));
     if (tiltNow !== tilt) canvas.style.transform = `translateX(${(tilt = tiltNow) * tiltPx}px)`;
+    music.setEnergy(sim.energy);
     drawGlobe(ctx, img, still.matches ? 0 : Math.floor((t / 1000) * ASSETS.cat.fps), sim);
     requestAnimationFrame(tick);
   };
