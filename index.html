@@ -17,11 +17,13 @@
       <button class="icon-btn corner-right" id="sound-btn" type="button" aria-label="Sound" aria-pressed="true"><i class="icon" data-icon="soundOn"></i></button>
 
       <h1 id="title"><span class="greet">Merry Christmas!</span></h1>
-      <canvas id="globe" width="96" height="120" role="img" aria-label="A snowglobe with a little Christmas tree inside and a black cat sleeping on top"></canvas>
+      <canvas id="globe" width="96" height="120" role="img" aria-label="A snowglobe with a little Christmas tree inside and a black cat sleeping on top. Drag it, press Space or use the Shake button to shake it." tabindex="0"></canvas>
 
       <div class="actions" id="actions">
         <button class="px-btn" id="upload-btn" type="button">Upload pic</button>
         <button class="px-btn" id="shake-btn" type="button">Shake me!</button>
+        <button class="px-btn" id="motion-btn" type="button" hidden>Tap to enable shake</button>
+        <p class="hint" id="hint" aria-live="polite">Drag the globe to shake it!</p>
       </div>
 
       <footer id="footer">

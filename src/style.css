@@ -142,6 +142,14 @@ canvas,
   gap: 8px;
 }
 
+.hint {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: calc(var(--btn-font) * 100 / 3);
+  line-height: 1;
+}
+
 /* Pixel button: 9-slice border-image of the code-drawn sprite (insets 3,3,4,3 art px). */
 .px-btn {
   min-height: 44px;

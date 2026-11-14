@@ -86,3 +86,13 @@ test('background picker cycles and is remembered', async ({ page }) => {
   await page.reload();
   expect(await bg()).toBe(second);
 });
+
+test('Shake me! swirls the snow', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForTimeout(300);
+  const snap = () => page.evaluate(() => (document.getElementById('globe') as HTMLCanvasElement).toDataURL());
+  const before = await snap();
+  await page.click('#shake-btn');
+  await page.waitForTimeout(250);
+  expect(await snap()).not.toBe(before);
+});
