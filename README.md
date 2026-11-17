@@ -139,4 +139,4 @@ If you use and enjoy this, feel free to tag me on my socials!
 
 ## Licences
 
-There is no `LICENSE` file in this repo yet, so the app's own code has no licence chosen. `@imgly/background-removal` is AGPL-3.0, so the app's source needs to stay public under a compatible licence. Dependencies: `gifenc` is MIT, Pixelify Sans is SIL OFL, and Vite, Vitest and Playwright are MIT or Apache-2.0. The Pixelta fonts are licensed separately and aren't covered by this repo.
+The app's own code is released under the [MIT License](LICENSE). `@imgly/background-removal` is AGPL-3.0, so the deployed app as a whole also has to meet the AGPL (in practice: keep this source public); MIT is compatible with that. Dependencies: `gifenc` is MIT, Pixelify Sans is SIL OFL, and Vite, Vitest and Playwright are MIT or Apache-2.0. The Pixelta fonts are licensed separately and aren't covered by this repo.
