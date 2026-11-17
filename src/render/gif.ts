@@ -21,8 +21,8 @@ export function exportScales(letterScale: number, coarse: boolean, o: Orientatio
   return Array.from({ length: top }, (_, i) => top - i);
 }
 
-/** Frame f's cat frame: the cat animates at its own 4 fps. */
-export const catFrameAt = (f: number) => Math.floor((f / GIF_FPS) * ASSETS.cat.fps);
+/** Cat frame for GIF frame f: one step every 5 frames (3 per second), so 60 frames are 12 steps = 4 whole cycles and the loop is seamless. */
+export const catFrameAt = (f: number) => Math.floor(f / 5) % ASSETS.cat.frames;
 
 const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
 const RESERVED = [...new Set(Object.values(PALETTE))].map(hex); // pixel-art colours stay exact

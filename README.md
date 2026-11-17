@@ -6,35 +6,42 @@ Pop a cheeky photo of yourself, your pet, or a loved one into a pixel-art snowgl
 
 **Live:** https://christmas-letter-lemon.vercel.app
 
+![The globe screen](docs/globe-screen.png)
+
 ## How it works
 
 ```mermaid
 flowchart LR
-    A[Globe screen] -->|Upload pic or selfie| B[Cut out in your browser<br/>and pixelated]
-    B --> C[You, standing in the globe<br/>next to the tree]
-    C -->|Shake me!| D[Snow swirls + music box plays]
-    D -->|Send as letter| E[Airmail letter<br/>with your message]
-    E -->|Save GIF| F[Animated GIF to share]
-    E -->|Make another| A
+    A[Globe screen] -->|Upload pic or selfie| B[Cut out in your browser]
+    B -->|opens automatically| C[Airmail letter<br/>you in the globe + your message]
+    A -->|Shake me!| D[Snow swirls + music box plays]
+    C -->|Save GIF| F[Animated GIF to share]
+    C -->|Make another| A
 ```
 
 1. **Globe screen.** Pick a cosy window scene, add a photo, and shake the globe by dragging it, tapping **Shake me!**, pressing Space, or shaking your phone. Snow swirls and settles while a music-box carol winds down with it.
-2. **Letter screen.** The globe lands on a pixel airmail letter next to a handwritten "Merry Christmas & a Happy New Year!" and "Love, [name]". Edit the message, then save the letter as a looping GIF.
+2. **Letter screen.** As soon as your photo is cut out, an envelope opens onto a pixel airmail letter: a small live copy of the globe, a handwritten "Merry Christmas & a Happy New Year!" and "Love, [name]". Tap the message or your name to edit them, then save the letter as a looping GIF (shared from the preview dialog on phones, downloaded on desktop). **Make another** starts over.
+
+Your photo is a smooth, true-colour cut-out (not pixelated) standing in front of the tree.
+
+![The letter screen](docs/letter-screen.png)
+
+An example GIF (no photo): [docs/example.gif](docs/example.gif)
 
 ## Status
 
-The app is being built in phases (see `SPEC.md`).
+All phases in `SPEC.md` are done.
 
 | Phase | What | Status |
 | --- | --- | --- |
 | 0 | Asset pass: sprites, backgrounds, palette, generated pixel art | ✅ Done |
 | 1 | Responsive globe screen, background picker, About | ✅ Done |
-| 2 | Snow and shaking (drag, button, keyboard, device motion) | Next |
-| 3 | Music box (public-domain carols) | Planned |
-| 4 | Photo upload, in-browser background removal, pixelation | Planned |
-| 5 | Letter screen with editable message | Planned |
-| 6 | Save GIF and share | Planned |
-| 7 | Polish, accessibility and performance pass | Planned |
+| 2 | Snow and shaking (drag, button, keyboard, device motion) | ✅ Done |
+| 3 | Music box (public-domain carols) | ✅ Done |
+| 4 | Photo upload, in-browser background removal | ✅ Done |
+| 5 | Letter screen with editable message | ✅ Done |
+| 6 | Save GIF and share | ✅ Done |
+| 7 | Polish, accessibility and performance pass | ✅ Done |
 
 ## Privacy
 
@@ -44,7 +51,7 @@ The app is being built in phases (see `SPEC.md`).
 > The web app only remembers your sound, song and background choices and your last message, in your own browser.
 > GIFs you save go only where you choose to share them.
 
-The site only loads its own static files. There's no backend, no accounts and no analytics, and the background-removal model will be self-hosted rather than loaded from a CDN.
+The site only loads its own static files. There's no backend, no accounts and no analytics, and the background-removal model is self-hosted rather than loaded from a CDN.
 
 ## Tech stack
 
@@ -52,11 +59,11 @@ The site only loads its own static files. There's no backend, no accounts and no
 | --- | --- |
 | Build | [Vite](https://vite.dev) + TypeScript, no framework |
 | Rendering | Canvas 2D at native art resolution, scaled by whole numbers with `image-rendering: pixelated` |
-| Background removal | `@imgly/background-removal`, lazy-loaded and run in the browser (Phase 4) |
-| Audio | Web Audio API, synthesised music-box tones (Phase 3) |
-| GIF export | `gifenc` (Phase 6) |
+| Background removal | `@imgly/background-removal`, self-hosted, lazy-loaded and run in the browser |
+| Audio | Web Audio API, synthesised music-box tones |
+| GIF export | `gifenc`, lazy-loaded when you press Save GIF |
 | Font | Pixelta and Pixelta Rounded by Blankids, falling back to Pixelify Sans |
-| Tests | Vitest (layout logic) and Playwright (viewport smoke tests) |
+| Tests | Vitest (layout, text and GIF logic) and Playwright (viewports, letter, GIF export, photo privacy) |
 | Hosting | Vercel, deployed as a prebuilt build from a local machine |
 
 ### Pixel-perfect scaling
@@ -114,10 +121,13 @@ scripts/       asset pipeline (normalise, draw, fonts)
 src/
   assets/manifest.ts   every asset's size and anchor point
   palette.ts           shared colour palette
-  render/              integer scaling + globe drawing
-  screens/             globe screen (letter screen to come)
+  render/              integer scaling, globe and letter drawing, text fitting, GIF export
+  screens/             globe screen and letter screen
+  photo/               upload menu, selfie, cut-out
+  audio/               music box
   ui/                  handwritten greeting effect
   state.ts             saved preferences (never photos)
+docs/          README screenshots and an example GIF
 tests/         Vitest unit tests and Playwright e2e tests
 ```
 
@@ -127,6 +137,6 @@ Made by Loveaction Alyssa. Font: Pixelta by Blankids. Carols are in the public d
 
 If you use and enjoy this, feel free to tag me on my socials!
 
-## Licence
+## Licences
 
-Not yet chosen. `@imgly/background-removal` is AGPL-3.0, so once it's added (Phase 4) the app's source must stay public under a compatible licence. The Pixelta fonts are licensed separately and aren't covered by this repo's licence.
+There is no `LICENSE` file in this repo yet, so the app's own code has no licence chosen. `@imgly/background-removal` is AGPL-3.0, so the app's source needs to stay public under a compatible licence. Dependencies: `gifenc` is MIT, Pixelify Sans is SIL OFL, and Vite, Vitest and Playwright are MIT or Apache-2.0. The Pixelta fonts are licensed separately and aren't covered by this repo.
