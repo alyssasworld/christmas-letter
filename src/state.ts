@@ -1,6 +1,7 @@
 // Persisted preferences only (SPEC §9: never photos). Storage can throw or be empty (private mode), so every access is guarded.
 import { SONGS } from './audio/songs.ts';
 import { BACKGROUNDS } from './assets/manifest.ts';
+import { DEFAULT_MESSAGE } from './render/text.ts';
 
 const PREFIX = 'shake-a-memory:';
 function read(key: string): string | null {
@@ -40,5 +41,18 @@ export const prefs = {
   },
   set song(v: number) {
     write('song', String(v));
+  },
+  // letter text (SPEC §9 allows the last message and name); callers sanitise
+  get message(): string {
+    return read('message') ?? DEFAULT_MESSAGE;
+  },
+  set message(v: string) {
+    write('message', v);
+  },
+  get name(): string {
+    return read('name') ?? '';
+  },
+  set name(v: string) {
+    write('name', v);
   },
 };

@@ -28,6 +28,9 @@
 * {
   box-sizing: border-box;
 }
+[hidden] {
+  display: none !important;
+}
 html,
 body {
   margin: 0;
@@ -61,7 +64,8 @@ canvas,
 
 /* Corner icon buttons: cream face, ink pixel border, icon at an integer scale. */
 .icon-btn {
-  position: absolute;
+  position: fixed;
+  z-index: 2; /* above both screens */
   top: calc(env(safe-area-inset-top) + 8px);
   padding: calc(var(--ui) * 3);
   min-width: 44px;
@@ -294,4 +298,149 @@ dialog::backdrop {
   .cat-anim {
     animation: none;
   }
+}
+
+/* Letter screen: the canvas is sized in JS to an integer device-px scale; the stack is centred below the corner buttons. */
+#letter-screen {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  padding: calc(env(safe-area-inset-top) + 16 * var(--ui) + 8px) 0 env(safe-area-inset-bottom);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#letter-screen.opening .letter-hint,
+#letter-screen.opening .letter-wrap,
+#letter-screen.opening .letter-actions {
+  visibility: hidden;
+}
+.letter-wrap {
+  position: relative;
+  line-height: 0;
+}
+#letter {
+  display: block;
+  touch-action: manipulation;
+}
+.letter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.letter-actions .hint {
+  line-height: 1.2;
+  padding-bottom: 4px;
+}
+.px-btn:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+/* The edit boxes: invisible buttons over the canvas text, drawn as dashed outlines. They pulse until the first edit. */
+.edit-hit {
+  position: absolute;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 3px dashed var(--red);
+  cursor: text;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .edit-hit {
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+/* after the first edit they only show on hover or focus */
+#letter-screen.edited .edit-hit {
+  animation: none;
+  border-color: transparent;
+}
+#letter-screen.edited .edit-hit:hover,
+#letter-screen.edited .edit-hit:focus-visible {
+  border-color: rgb(196 73 53 / 0.5);
+}
+.edit-hit:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+.letter-hint {
+  margin: 0 8px 8px;
+  padding: 0 8px; /* cream chip: the text sits on a busy background */
+  background: var(--cream);
+  text-align: center;
+  font-size: calc(var(--btn-font) * 100 / 3);
+  line-height: 1.2;
+}
+.pencil {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.1em;
+  image-rendering: pixelated;
+}
+#edit-message,
+#edit-name {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 2px solid var(--red);
+  background: var(--cream);
+  color: var(--ink);
+  font-family: Pixelta, 'Pixelify Sans', monospace;
+  resize: none;
+  overflow: hidden;
+}
+#edit-count {
+  position: absolute;
+  padding: 0 4px;
+  background: var(--cream);
+  border: 1px solid var(--ink);
+  font-size: calc(var(--btn-font) * 100 / 3);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Envelope transition: 4 frames at 6 fps, centred, integer UI scale */
+.envelope {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--ui) * 64);
+  height: calc(var(--ui) * 44);
+  margin: calc(var(--ui) * -22) 0 0 calc(var(--ui) * -32);
+  background: url('/assets/envelope-sheet.png') 0 0 / calc(var(--ui) * 256) calc(var(--ui) * 44);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: envelope 0.5s steps(3) forwards;
+}
+@keyframes envelope {
+  to {
+    background-position-x: calc(var(--ui) * -192);
+  }
+}
+
+/* GIF ready dialog */
+#gif-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 50dvh;
+  margin: 0 auto 8px;
+  image-rendering: pixelated;
+}
+a.px-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  text-decoration: none;
 }

@@ -38,6 +38,11 @@ test('photo upload stays on our own origin', async ({ page }) => {
   await expect(page.locator('#busy')).toBeHidden();
   await expect(page.locator('#globe')).toHaveAttribute('aria-label', /your photo/);
   expect(foreign).toEqual([]);
+
+  // the cut-out opens the letter by itself
+  await expect(page.locator('#letter-screen')).toBeVisible();
+  await expect(page.locator('#globe-screen')).toBeHidden();
+  await expect(page.locator('#letter')).toBeFocused({ timeout: 5000 });
 });
 
 test('non-image files are rejected with a message', async ({ page }) => {

@@ -17,7 +17,8 @@ export const getEnergy = () => snow?.energy ?? 0;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
-export async function mountGlobeScreen() {
+/** onPhoto runs once a photo (or the framed fallback) has been set: that's the cue to open the letter. */
+export async function mountGlobeScreen(onPhoto: () => void) {
   const bg = $('bg');
   const canvas = $<HTMLCanvasElement>('globe');
   const title = $('title');
@@ -109,6 +110,7 @@ export async function mountGlobeScreen() {
       canvas.setAttribute('aria-label', globeLabel.replace('inside and', 'inside, a cut-out of your photo standing in front of it, and'));
     },
     say: (msg) => ($('hint').textContent = msg),
+    done: onPhoto,
   });
 
   const img = await loadGlobeImages();
@@ -192,7 +194,13 @@ export async function mountGlobeScreen() {
   let avgMs = 16;
   let slowFor = 0;
   let tilt = 0;
+  const screen = $('globe-screen');
   const tick = (t: number) => {
+    if (screen.hidden) {
+      // the letter screen is showing: it runs its own sim, so skip this one
+      prev = -1;
+      return requestAnimationFrame(tick);
+    }
     const el = prev < 0 ? 0 : Math.min((t - prev) / 1000, 0.25);
     prev = t;
     acc += el;
@@ -210,8 +218,22 @@ export async function mountGlobeScreen() {
     const tiltNow = still.matches ? 0 : Math.round(2 * Math.sin(t / 70) * Math.min(1, sim.energy * 1.5));
     if (tiltNow !== tilt) canvas.style.transform = `translateX(${(tilt = tiltNow) * tiltPx}px)`;
     music.setEnergy(sim.energy);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGlobe(ctx, img, canvas.width / 96, still.matches ? 0 : Math.floor((t / 1000) * ASSETS.cat.fps), sim);
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
+
+  return {
+    music,
+    img,
+    /** Make another: forget the photo and the shake, and go back to the globe. */
+    reset() {
+      setPhoto(undefined);
+      canvas.setAttribute('aria-label', globeLabel);
+      hint.textContent = 'Drag the globe to shake it!';
+      canvas.focus();
+    },
+  };
 }
