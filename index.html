@@ -12,10 +12,11 @@
   <body>
     <div id="bg" aria-hidden="true"></div>
 
-    <main id="globe-screen">
-      <button class="icon-btn corner-left" id="bg-btn" type="button" aria-label="Change background"><i class="icon" data-icon="picture"></i></button>
-      <button class="icon-btn corner-right" id="sound-btn" type="button" aria-label="Sound" aria-pressed="true"><i class="icon" data-icon="soundOn"></i></button>
+    <!-- corner buttons live outside the screens so they stay on both (SPEC §3.2) -->
+    <button class="icon-btn corner-left" id="bg-btn" type="button" aria-label="Change background"><i class="icon" data-icon="picture"></i></button>
+    <button class="icon-btn corner-right" id="sound-btn" type="button" aria-label="Sound" aria-pressed="true"><i class="icon" data-icon="soundOn"></i></button>
 
+    <main id="globe-screen">
       <h1 id="title"><span class="greet">Merry Christmas!</span></h1>
       <canvas id="globe" width="96" height="120" role="img" aria-label="A snowglobe with a little Christmas tree inside and a black cat sleeping on top. Drag it, press Space or use the Shake button to shake it." tabindex="0"></canvas>
 
@@ -31,6 +32,53 @@
         <a class="link" id="github-link" href="" hidden>GitHub</a>
       </footer>
     </main>
+
+    <main id="letter-screen" hidden>
+      <div class="envelope" id="envelope" aria-hidden="true" hidden></div>
+      <p class="letter-hint" id="letter-hint">
+        Tap the message or your name to edit
+        <svg class="pencil" viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
+          <path fill="#ea99f4" d="M6 0h2v1H7v1H6z" />
+          <path fill="#ffeb14" d="M5 1h1v1h1v1H6v1H5V3H4V2h1zM3 3h1v1h1v1H4v1H3V5H2V4h1zM1 5h1v1H1z" />
+          <path fill="#72432c" d="M0 6h2v1H1v1H0z" />
+          <path fill="#2b2b2b" d="M0 7h1v1H0z" />
+        </svg>
+      </p>
+      <div class="letter-wrap" id="letter-wrap">
+        <canvas id="letter" role="img" aria-label="" tabindex="0"></canvas>
+        <button class="edit-hit" id="edit-message-btn" type="button" aria-label="Edit message"></button>
+        <button class="edit-hit" id="edit-name-btn" type="button" aria-label="Edit name"></button>
+        <textarea id="edit-message" hidden aria-label="Message" aria-describedby="edit-count" maxlength="54" spellcheck="false"></textarea>
+        <input id="edit-name" hidden aria-label="Your name" aria-describedby="edit-count" maxlength="16" spellcheck="false" autocomplete="off" />
+        <span id="edit-count" hidden></span>
+        <p class="sr-only" id="letter-text"></p>
+      </div>
+      <div class="letter-actions">
+        <button class="px-btn" id="save-gif-btn" type="button">Save GIF</button>
+        <button class="px-btn" id="another-btn" type="button">Make another</button>
+        <p class="hint" id="gif-note" role="status" aria-live="polite">GIFs have no sound</p>
+      </div>
+    </main>
+
+    <dialog id="gif-ready" aria-labelledby="gif-ready-title">
+      <h2 id="gif-ready-title">Your GIF is ready!</h2>
+      <img id="gif-preview" alt="Your animated Christmas letter" />
+      <p id="gif-where"></p>
+      <div class="menu">
+        <button class="px-btn" id="gif-share" type="button" hidden>Share</button>
+        <a class="px-btn" id="gif-download" download="shake-a-memory.gif" href="#">Download again</a>
+        <button class="px-btn" id="gif-close" type="button">Close</button>
+      </div>
+    </dialog>
+
+    <dialog id="confirm-new" aria-labelledby="confirm-title">
+      <h2 id="confirm-title">Start over?</h2>
+      <p>This clears your photo and message.</p>
+      <div class="menu">
+        <button class="px-btn" id="confirm-yes" type="button">Yes</button>
+        <button class="px-btn" id="confirm-no" type="button">Cancel</button>
+      </div>
+    </dialog>
 
     <dialog id="about" aria-labelledby="about-title">
       <h2 id="about-title">Shake-a-Memory</h2>

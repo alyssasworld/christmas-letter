@@ -3,7 +3,7 @@ import { decode, makeSprite, MAX_BYTES } from './cutout.ts';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
-export function mountPhotoUi(hooks: { setPhoto: (b: ImageBitmap) => void; say: (msg: string) => void }) {
+export function mountPhotoUi(hooks: { setPhoto: (b: ImageBitmap) => void; say: (msg: string) => void; done: () => void }) {
   const menu = $<HTMLDialogElement>('upload-menu');
   const selfie = $<HTMLDialogElement>('selfie');
   const busy = $<HTMLDialogElement>('busy');
@@ -16,10 +16,12 @@ export function mountPhotoUi(hooks: { setPhoto: (b: ImageBitmap) => void; say: (
     working = true;
     buttons.forEach((b) => (b.disabled = true));
     busy.showModal();
+    let ok = false;
     try {
       const { sprite, fallback } = await makeSprite(await load());
       hooks.setPhoto(sprite);
       hooks.say(fallback ? "Couldn't cut you out, so here's a little framed photo instead." : 'You are in the globe! Give it a shake.');
+      ok = true;
     } catch {
       hooks.say("Couldn't read that image. Try another photo (JPEG or PNG work best).");
     } finally {
@@ -27,6 +29,7 @@ export function mountPhotoUi(hooks: { setPhoto: (b: ImageBitmap) => void; say: (
       buttons.forEach((b) => (b.disabled = false));
       working = false;
     }
+    if (ok) hooks.done(); // after the busy dialog has closed, so it can't take focus back
   }
 
   function handleFile(file: File | undefined) {

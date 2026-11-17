@@ -4,7 +4,7 @@ import { drawSnow, type Snow } from './snow.ts';
 
 const url = (src: string) => import.meta.env.BASE_URL + src;
 
-function load(src: string) {
+export function load(src: string) {
   const img = new Image();
   img.src = url(src);
   return img.decode().then(() => img);
@@ -30,14 +30,12 @@ export async function loadGlobeImages(): Promise<GlobeImages> {
 
 // In memory only, never persisted (SPEC §9).
 let photo: ImageBitmap | undefined;
-export const setPhoto = (b: ImageBitmap) => (photo = b);
+export const setPhoto = (b?: ImageBitmap) => (photo = b);
 
-/** scale: device px per art px. catFrame: which of the cat's animation frames to show. */
-export function drawGlobe(ctx: CanvasRenderingContext2D, img: GlobeImages, scale: number, catFrame: number, snow: Snow) {
+/** scale: device px per art px. catFrame: which of the cat's animation frames to show. (ox, oy): device px offset; the caller clears. */
+export function drawGlobe(ctx: CanvasRenderingContext2D, img: GlobeImages, scale: number, catFrame: number, snow: Snow, ox = 0, oy = 0) {
   const a = ASSETS;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, 96 * scale, 120 * scale);
-  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.setTransform(scale, 0, 0, scale, ox, oy);
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(img.shadow, 16, 112);
   ctx.drawImage(img.back, a.globeBack.x, a.globeBack.y);

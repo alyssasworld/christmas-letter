@@ -20,6 +20,9 @@ export function pickVariant(w: number, h: number): Variant {
   return best;
 }
 
+/** Device px per UI pixel: icons are 8 art px; aim for ~3 CSS px on desktop, never below 2 device px. */
+export const uiPixel = (dpr: number) => Math.max(2, Math.round(3 * dpr));
+
 /** Largest integer scale (>=1) at which an art-sized box fits in the available device pixels. */
 export const fitScale = (artW: number, artH: number, devW: number, devH: number) =>
   Math.max(1, Math.floor(Math.min(devW / artW, devH / artH)));
@@ -55,7 +58,7 @@ export function layoutGlobe(vp: Viewport): GlobeLayout {
   const bgY = Math.round((H - bg.h * bgScale) / 2);
 
   // UI pixel: icons are 8 art px; aim for ~3 CSS px per pixel on desktop, never below 2 device px.
-  const uiPx = Math.max(2, Math.round(3 * vp.dpr));
+  const uiPx = uiPixel(vp.dpr);
   const textPx = Math.max(1, Math.round(bgScale / 2.5));
 
   const cornerRow = 16 * uiPx + 8 * vp.dpr; // corner button height + gap
