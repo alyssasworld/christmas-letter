@@ -36,7 +36,8 @@ export async function mountGlobeScreen(onPhoto: () => void) {
   function layout() {
     const dpr = window.devicePixelRatio || 1;
     const vv = window.visualViewport;
-    const vp = { w: vv?.width ?? innerWidth, h: vv?.height ?? innerHeight, dpr };
+    // visual viewport (the keyboard shrinks it) times its scale, so a pinch-zoom doesn't re-layout the page smaller
+    const vp = { w: vv ? vv.width * vv.scale : innerWidth, h: vv ? vv.height * vv.scale : innerHeight, dpr };
     const L = layoutGlobe(vp);
     const css = (dev: number) => `${dev / dpr}px`;
     tiltPx = L.globeScale / dpr;
@@ -148,7 +149,8 @@ export async function mountGlobeScreen(onPhoto: () => void) {
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
 
-  $('shake-btn').addEventListener('click', () => shake(sim, 0.8));
+  const shakeBtn = $('shake-btn');
+  shakeBtn.addEventListener('click', () => shake(sim, 0.8));
   canvas.addEventListener('keydown', (e) => {
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
@@ -172,7 +174,6 @@ export async function mountGlobeScreen(onPhoto: () => void) {
 
   // Device motion (SPEC §6): feature-detected; "active" only once a real reading arrives (desktops fire none or nulls).
   const hint = $('hint');
-  const motionBtn = $('motion-btn');
   let base: number[] | null = null;
   const onMotion = (e: DeviceMotionEvent) => {
     const a = e.accelerationIncludingGravity ?? e.acceleration;
@@ -186,15 +187,13 @@ export async function mountGlobeScreen(onPhoto: () => void) {
     if (mag > 2) shake(sim, Math.min(0.3, (mag - 2) / 60), d[0] / mag, -d[1] / mag);
   };
   if (typeof DeviceMotionEvent !== 'undefined') {
+    // listen from the start: Android sends readings right away; iPhone sends none until permission is granted
+    addEventListener('devicemotion', onMotion);
     const req = (DeviceMotionEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission;
-    // desktop Chrome also exposes requestPermission; only offer the prompt where a phone could be shaken
-    if (typeof req === 'function' && matchMedia('(any-pointer: coarse)').matches) {
-      motionBtn.hidden = false;
-      motionBtn.addEventListener('click', async () => {
-        motionBtn.hidden = true;
-        if ((await req().catch(() => 'denied')) === 'granted') addEventListener('devicemotion', onMotion);
-      });
-    } else addEventListener('devicemotion', onMotion);
+    // iPhone needs a tap before it allows motion, so the first "Shake me!" tap also asks (once). Chromium has
+    // requestPermission too but resolves without a prompt; the touch check keeps desktops from asking at all.
+    if (typeof req === 'function' && matchMedia('(any-pointer: coarse)').matches)
+      shakeBtn.addEventListener('click', () => void req.call(DeviceMotionEvent).catch(() => {}), { once: true });
   }
 
   // Fixed 60 Hz sim inside rAF. rAF pauses with the tab; elapsed is clamped so a long gap doesn't replay a backlog.

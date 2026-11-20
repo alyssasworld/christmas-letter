@@ -79,7 +79,8 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
   }
 
   function layout() {
-    const vp = { w: window.visualViewport?.width ?? innerWidth, h: window.visualViewport?.height ?? innerHeight, dpr: dpr() };
+    const vv = window.visualViewport; // times its scale, so a pinch-zoom doesn't re-layout the letter smaller
+    const vp = { w: vv ? vv.width * vv.scale : innerWidth, h: vv ? vv.height * vv.scale : innerHeight, dpr: dpr() };
     L = layoutLetter(vp, uiPixel(vp.dpr));
     // backing store at device res: every art pixel is exactly `scale` device px (this also resets the context state)
     canvas.width = L.w * L.scale;

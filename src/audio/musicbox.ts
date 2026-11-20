@@ -63,6 +63,14 @@ export function createMusicBox() {
 
   function start() {
     if (!ctx) {
+      // iPhone Safari mutes web audio on the silent switch unless the page asks for media playback (iOS 16.4+);
+      // same as toffee_blind_box. The speaker button still mutes.
+      try {
+        const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+        if (session) session.type = 'playback';
+      } catch {
+        /* unsupported: music just follows the silent switch */
+      }
       ctx = new AudioContext();
       master = ctx.createGain();
       master.gain.value = 0;

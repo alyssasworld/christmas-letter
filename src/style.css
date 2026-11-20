@@ -140,10 +140,10 @@ canvas,
   color: var(--red);
   transform: skewX(-12deg);
   line-height: 1.25;
-  /* chained 1-font-pixel drop-shadows = a solid 2-font-pixel cream outline around the whole phrase */
-  filter: drop-shadow(0.03em 0 0 var(--cream)) drop-shadow(-0.03em 0 0 var(--cream)) drop-shadow(0.03em 0 0 var(--cream))
-    drop-shadow(-0.03em 0 0 var(--cream)) drop-shadow(0 0.03em 0 var(--cream)) drop-shadow(0 -0.03em 0 var(--cream))
-    drop-shadow(0 0.03em 0 var(--cream)) drop-shadow(0 -0.03em 0 var(--cream));
+  /* chained 2-font-pixel drop-shadows = a solid cream outline around the whole phrase.
+     Not 8 x 1 font px: mobile Safari drops offsets under 1 CSS px (0.03em is 0.67px on a phone), so the outline vanished. */
+  filter: drop-shadow(0.06em 0 0 var(--cream)) drop-shadow(-0.06em 0 0 var(--cream)) drop-shadow(0 0.06em 0 var(--cream))
+    drop-shadow(0 -0.06em 0 var(--cream));
 }
 .greet .ch {
   display: inline-block;
