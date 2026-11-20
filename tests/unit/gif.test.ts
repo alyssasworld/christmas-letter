@@ -6,8 +6,9 @@ describe('gif schedule', () => {
     expect(GIF_FRAMES / GIF_FPS).toBe(4);
     expect(Number.isInteger(SIM_PER_FRAME)).toBe(true);
   });
-  it('cat advances at 4 fps', () => {
-    expect([0, 3, 4, 7, 60].map(catFrameAt)).toEqual([0, 0, 1, 1, 16]);
+  it('the cat cycle divides the loop, so it loops seamlessly', () => {
+    expect([0, 4, 5, 10, 15, 59].map(catFrameAt)).toEqual([0, 0, 1, 2, 0, 2]);
+    expect(catFrameAt(GIF_FRAMES)).toBe(catFrameAt(0)); // the frame after the last is the first again
   });
 });
 

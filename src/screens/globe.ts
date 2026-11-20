@@ -8,8 +8,7 @@ import { createSnow, shake, stepSnow, type Snow } from '../render/snow.ts';
 import { prefs } from '../state.ts';
 import { handwrite } from '../ui/handwritten.ts';
 
-// Set this to the public repo URL to show the footer GitHub link.
-const REPO_URL = '';
+const REPO_URL = 'https://github.com/alyssasworld/christmas-letter';
 
 let snow: Snow | undefined;
 /** Current snow energy (0-1), for the music box. */

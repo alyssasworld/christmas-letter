@@ -7,7 +7,18 @@
     <meta name="description" content="Put yourself in a pixel-art Christmas snowglobe, shake it, and send it as a letter." />
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png" />
-    <meta property="og:image" content="assets/og-image.png" />
+    <!-- the buttons are sized from the font, so load it early: a late swap shifts the layout -->
+    <link rel="preload" href="/fonts/Pixelta-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Pixelta-Rounded.woff2" as="font" type="font/woff2" crossorigin />
+    <meta name="theme-color" content="#2a2540" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://christmas-letter-lemon.vercel.app/" />
+    <meta property="og:title" content="Shake-a-Memory" />
+    <meta property="og:description" content="Put yourself in a pixel-art Christmas snowglobe, shake it, and send it as a letter." />
+    <meta property="og:image" content="https://christmas-letter-lemon.vercel.app/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <div id="bg" aria-hidden="true"></div>
@@ -76,7 +87,7 @@
       <p>This clears your photo and message.</p>
       <div class="menu">
         <button class="px-btn" id="confirm-yes" type="button">Yes</button>
-        <button class="px-btn" id="confirm-no" type="button">Cancel</button>
+        <button class="px-btn" id="confirm-no" type="button" autofocus>Cancel</button>
       </div>
     </dialog>
 

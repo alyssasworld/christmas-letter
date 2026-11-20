@@ -108,8 +108,12 @@ test('the hint and edit boxes are there, and shake does not leave the globe scre
   await page.goto('/?screen=letter');
   await expect(page.locator('#letter-hint')).toContainText('Tap the message or your name to edit');
   for (const id of ['edit-message-btn', 'edit-name-btn']) {
-    const b = await page.locator('#' + id).boundingBox();
-    expect(Math.min(b!.width, b!.height)).toBeGreaterThanOrEqual(44);
+    // the dashed box is snug; its ::before keeps the tap target at least 44px
+    const t = await page.locator('#' + id).evaluate((el) => {
+      const c = getComputedStyle(el, '::before');
+      return Math.min(parseFloat(c.width), parseFloat(c.height));
+    });
+    expect(t).toBeGreaterThanOrEqual(44);
   }
 });
 

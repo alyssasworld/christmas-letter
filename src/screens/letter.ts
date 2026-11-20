@@ -54,16 +54,12 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
     canvas.dataset.textFits = String(info.fits);
     canvas.dataset.lines = String(info.lines);
     canvas.dataset.fontPx = info.size.toFixed(2);
-    place($('edit-message-btn'), info.message);
-    // the name button is anchored at the bottom, so its 44px minimum grows upward
-    const sg = info.sign;
-    Object.assign($('edit-name-btn').style, {
-      left: css(sg.x),
-      width: css(sg.w),
-      height: css(sg.h),
-      top: '',
-      bottom: css(L.h * s - (sg.y + sg.h)),
-    });
+    // dashed boxes sit a few px outside the text so the dashes never touch the letters
+    const pad = 4 * dpr();
+    const box = (id: string, r: { x: number; y: number; w: number; h: number }) =>
+      place($(id), { x: r.x - pad, y: r.y - pad, w: r.w + 2 * pad, h: r.h + 2 * pad });
+    box('edit-message-btn', info.message);
+    box('edit-name-btn', info.sign);
   }
 
   function layout() {
@@ -109,7 +105,8 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
     const m = which === 'message';
     const r = m ? info.messageEdit : { x: info.nameX, y: info.sign.y, w: info.sign.x + info.sign.w - info.nameX, h: info.sign.h };
     place(el, r);
-    Object.assign(el.style, { fontSize: css(info.size), lineHeight: css(36 * info.n) });
+    // at least 16px so iOS doesn't zoom the page on focus
+    Object.assign(el.style, { fontSize: `max(16px, ${css(info.size)})`, lineHeight: `max(1.2em, ${css(36 * info.n)})` });
     if (document.activeElement !== el) el.value = m ? message : name;
     el.hidden = count.hidden = false;
     // counter sits just under the field

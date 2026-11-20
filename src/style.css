@@ -146,6 +146,14 @@ canvas,
   gap: 8px;
 }
 
+.hint,
+#footer .link {
+  /* cream halo: the text sits on whichever background is picked, and stays AA on all six */
+  text-shadow:
+    0 0 3px var(--cream),
+    0 0 3px var(--cream),
+    0 0 6px var(--cream);
+}
 .hint {
   flex-basis: 100%;
   margin: 0;
@@ -343,12 +351,20 @@ dialog::backdrop {
 /* The edit boxes: invisible buttons over the canvas text, drawn as dashed outlines. They pulse until the first edit. */
 .edit-hit {
   position: absolute;
-  min-width: 44px;
-  min-height: 44px;
   padding: 0;
   background: none;
-  border: 3px dashed var(--red);
+  border: 2px dashed var(--red);
   cursor: text;
+}
+/* the dashed box stays snug around the text; this keeps the tap target at least 44px */
+.edit-hit::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
 }
 @media (prefers-reduced-motion: no-preference) {
   .edit-hit {

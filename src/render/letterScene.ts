@@ -7,8 +7,8 @@ import { fitText, layoutLine, LINE_H, PAD_X, wrapMessage } from './text.ts';
 
 // All sizes are multiples of 8 so the border stripes (period 8) tile cleanly.
 export const LETTER = {
-  landscape: { w: 288, h: 152, globe: { x: 16, y: 16 }, text: { x: 124, y: 16, w: 132, h: 120 }, stamp: { x: 260, y: 12 } },
-  portrait: { w: 136, h: 240, globe: { x: 20, y: 16 }, text: { x: 16, y: 140, w: 104, h: 84 }, stamp: { x: 108, y: 12 } },
+  landscape: { w: 288, h: 160, globe: { x: 16, y: 16 }, text: { x: 124, y: 16, w: 132, h: 120 }, stamp: { x: 260, y: 12 } },
+  portrait: { w: 136, h: 248, globe: { x: 20, y: 16 }, text: { x: 16, y: 140, w: 104, h: 84 }, stamp: { x: 108, y: 12 } },
 } as const;
 export type Orientation = keyof typeof LETTER;
 
@@ -72,7 +72,7 @@ const PAD_TOP = 4;
 const GREETING = 'Love, ';
 export const PLACEHOLDER = 'Your Name';
 const INK = '#2b2b2b';
-const FAINT = '#7a7060'; // placeholder name: lighter, so it reads as editable
+const FAINT = '#6b6152'; // placeholder name: lighter than the ink so it reads as editable, still 5:1 on the paper
 const RED = '#c44935';
 const CREAM = '#f4efe6';
 
@@ -172,5 +172,25 @@ export function renderStatic(
   cv.height = LETTER[o].h * s;
   const g = cv.getContext('2d')!;
   drawFrame(g, img, o, s);
-  return drawText(g, o, s, message, name, skip);
+  const info = drawText(g, o, s, message, name, skip);
+  drawCredit(g, o, s);
+  return info;
+}
+
+const CREDIT = 'made by Loveaction';
+/** Quiet credit in the 16 art px strip under the globe and text: bottom-left on landscape, centred on portrait. */
+function drawCredit(ctx: CanvasRenderingContext2D, o: Orientation, s: number) {
+  const { w, h } = LETTER[o];
+  const stripY = (h - 24) * s; // the strip runs from 24 art px above the bottom edge to 8 above it (inside the border)
+  const stripH = 16 * s;
+  ctx.font = `${FONT.nativeSize}px Pixelta, 'Pixelify Sans', monospace`;
+  const width = [...CREDIT].reduce((x, ch) => x + ctx.measureText(ch).width, 0); // font px
+  // largest integer n whose glyphs fit 10 art px tall and the column; fractional (still inside) on tiny letters
+  const k = Math.min((10 * s) / (ASC + DESC), ((o === 'landscape' ? 200 : 104) * s) / width);
+  const n = k >= 1 ? Math.floor(k) : k;
+  ctx.font = `${n * FONT.nativeSize}px Pixelta, 'Pixelify Sans', monospace`;
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = 'rgb(43 43 43 / 0.75)';
+  const x = o === 'landscape' ? 16 * s : Math.round((w * s - width * n) / 2);
+  ctx.fillText(CREDIT, Math.round(x), Math.round(stripY + (stripH - (ASC + DESC) * n) / 2 + ASC * n));
 }
