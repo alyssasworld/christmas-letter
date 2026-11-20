@@ -1,5 +1,5 @@
 // Draws the snowglobe on a canvas of 96x120 art px at `scale` device px each (SPEC §4.1 draw order). Art is crisp; the photo is smooth.
-import { ASSETS, PHOTO_SLOT } from '../assets/manifest.ts';
+import { ASSETS, DOME, PHOTO_SLOT } from '../assets/manifest.ts';
 import { drawSnow, type Snow } from './snow.ts';
 
 const url = (src: string) => import.meta.env.BASE_URL + src;
@@ -28,6 +28,24 @@ export async function loadGlobeImages(): Promise<GlobeImages> {
   return { back, front, base, tree, cat, shadow, snow };
 }
 
+/** Largest size (art px) for a w x h photo standing on the ground: at most maxH tall, all four corners inside the glass. */
+export function photoSize(w: number, h: number) {
+  // same 0.97 margin the snow bounces at, so the photo never touches the glass outline
+  const inside = (x: number, y: number) => ((x - DOME.cx) / (DOME.rx * 0.97)) ** 2 + ((y - DOME.cy) / (DOME.ry * 0.97)) ** 2 <= 1;
+  const { x, bottom, maxH } = PHOTO_SLOT;
+  const fits = (k: number) => {
+    const half = (w * k) / 2;
+    const top = bottom - h * k;
+    return [top, bottom].every((y) => inside(x - half, y) && inside(x + half, y));
+  };
+  // fits() only gets harder as k grows, so bisect between 0 and the height cap
+  let lo = 0;
+  let hi = maxH / h;
+  if (fits(hi)) lo = hi;
+  else for (let i = 0; i < 30; i++) [lo, hi] = fits((lo + hi) / 2) ? [(lo + hi) / 2, hi] : [lo, (lo + hi) / 2];
+  return { w: w * lo, h: h * lo };
+}
+
 // In memory only, never persisted (SPEC §9).
 let photo: ImageBitmap | undefined;
 export const setPhoto = (b?: ImageBitmap) => (photo = b);
@@ -41,9 +59,9 @@ export function drawGlobe(ctx: CanvasRenderingContext2D, img: GlobeImages, scale
   ctx.drawImage(img.back, a.globeBack.x, a.globeBack.y);
   ctx.drawImage(img.tree, a.tree.x, a.tree.y);
   if (photo) {
-    const k = Math.min(PHOTO_SLOT.maxW / photo.width, PHOTO_SLOT.maxH / photo.height);
-    const w = Math.round(photo.width * k * scale);
-    const h = Math.round(photo.height * k * scale);
+    const size = photoSize(photo.width, photo.height);
+    const w = Math.round(size.w * scale);
+    const h = Math.round(size.h * scale);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     // whole device px, in device space (transform is a pure scale)
