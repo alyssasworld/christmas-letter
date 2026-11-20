@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   NOTE_COLS,
   NOTE_ROWS,
+  NOTE_SCALE,
+  noteGlyphScale,
   clampMessage,
   clampName,
   clampNote,
@@ -84,4 +86,14 @@ describe('fitText', () => {
     expect(f.fits).toBe(true);
   });
   it('is limited by height too', () => expect(fitText(['hi'], measure, 10000, 300).n).toBe(1));
+});
+
+describe('noteGlyphScale', () => {
+  it.each([0.5, 1, 2, 3, 6, 8])('never exceeds the budgeted size at n = %s', (n) => {
+    expect(noteGlyphScale(n)).toBeLessThanOrEqual(n * NOTE_SCALE);
+  });
+  it('is a whole number once it reaches 1', () => {
+    expect(noteGlyphScale(3)).toBe(1);
+    expect(noteGlyphScale(6)).toBe(3);
+  });
 });

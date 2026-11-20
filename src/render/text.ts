@@ -94,3 +94,6 @@ export function fitText(lines: string[], measure: (line: string, i: number) => n
   const n = k >= 1 ? Math.floor(k) : k;
   return { n, size: n * FONT.nativeSize, fits: w * n <= areaW + 1e-6 && h * n <= areaH + 1e-6 };
 }
+
+/** Note glyph scale for greeting scale n: never above the n * NOTE_SCALE that fitText budgeted, whole device px when it can be. */
+export const noteGlyphScale = (n: number) => (n * NOTE_SCALE >= 1 ? Math.floor(n * NOTE_SCALE) : n * NOTE_SCALE);

@@ -3,7 +3,7 @@
 import { ASSETS, FONT } from '../assets/manifest.ts';
 import { load } from './globeScene.ts';
 import { fitScale, type Viewport } from './scale.ts';
-import { fitText, layoutLine, LINE_H, NOTE_COLS, NOTE_SCALE, PAD_X, wrapMessage } from './text.ts';
+import { fitText, layoutLine, LINE_H, NOTE_COLS, NOTE_SCALE, noteGlyphScale, PAD_X, wrapMessage } from './text.ts';
 
 // All sizes are multiples of 8 so the border stripes (period 8) tile cleanly.
 export const LETTER = {
@@ -130,11 +130,12 @@ export function drawText(
     noteLines.length,
   );
   const { n } = fit;
-  const showPrompt = prompt && !noteLines.length;
-  const drawn = showPrompt ? [layoutLine(PROMPT, advance, 21)] : noteLaid;
-  const gs = n * NOTE_SCALE >= 1 ? Math.round(n * NOTE_SCALE) : n * NOTE_SCALE; // note glyph scale, whole device px when it can be
+  const gs = noteGlyphScale(n);
   const noteTop = ay + (PAD_TOP + Math.max(lines.length, 1) * LINE_H + 0.25 * LINE_H) * n;
   const noteLineH = NOTE_SCALE * LINE_H * n;
+  // the prompt has no reserved room, so it only shows when it ends above the sign-off
+  const showPrompt = prompt && !noteLines.length && noteTop + noteLineH <= ay + ah - (PAD_TOP + DESC + ASC + 2) * n;
+  const drawn = showPrompt ? [layoutLine(PROMPT, advance, 21)] : noteLaid;
 
   ctx.font = `${fit.size}px ${FAMILY}`;
   ctx.textBaseline = 'alphabetic';
@@ -219,9 +220,9 @@ function drawCredit(ctx: CanvasRenderingContext2D, o: Orientation, s: number) {
   const stripH = 16 * s;
   ctx.font = `${FONT.nativeSize}px Pixelta, 'Pixelify Sans', monospace`;
   const width = [...CREDIT].reduce((x, ch) => x + ctx.measureText(ch).width, 0); // font px
-  // largest integer n whose glyphs fit 7 art px tall and the column; fractional (still inside) on tiny letters
-  const k = Math.min((7 * s) / (ASC + DESC), ((o === 'landscape' ? 200 : 104) * s) / width);
-  const n = k >= 1 ? Math.floor(k) : k;
+  // largest integer n whose glyphs fit 10 art px tall and the column; fractional (still inside) on tiny letters
+  const k = Math.min((10 * s) / (ASC + DESC), ((o === 'landscape' ? 200 : 104) * s) / width);
+  const n = (k >= 1 ? Math.floor(k) : k) * 0.8; // a touch smaller than the largest that fits
   ctx.font = `${n * FONT.nativeSize}px Pixelta, 'Pixelify Sans', monospace`;
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = 'rgb(43 43 43 / 0.75)';
