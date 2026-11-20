@@ -4,7 +4,7 @@
 Let the sender add a short personal note under the red greeting so the GIF letter feels written for one person. Also make the "made by Loveaction" credit quieter.
 
 ## Goals
-- Optional note, max 60 characters, up to 2 lines, between the greeting and "Love, Name".
+- Optional note, max 45 characters, up to 2 lines, between the greeting and "Love, Name".
 - In the saved GIF and the live letter, on every viewport (portrait and landscape).
 - Credit drawn smaller (about 7 art px tall instead of 10).
 
@@ -23,7 +23,7 @@ Let the sender add a short personal note under the red greeting so the GIF lette
 - Note in an HTML layer only: rejected, it has to be in the GIF.
 
 ## Design (owner decisions)
-- Short note: 60 characters (owner: "keep it short").
+- Short note: 45 characters (owner: "keep it short"; cut from 60 on 2026-11-20).
 - Works like the greeting and name: tap to edit, dashed box that pulses until the first edit, Enter saves, Esc cancels, remembered in localStorage (`note`), cleared by "Make another".
 - Empty: a faint "Add a little note" prompt in the app only (like the dashed boxes), never drawn into the GIF.
 
