@@ -12,6 +12,7 @@ import {
   clampName,
   clampNote,
   DEFAULT_MESSAGE,
+  LINE_H,
   MAX_MESSAGE,
   MAX_NAME,
   MAX_NOTE,
@@ -105,7 +106,7 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
   // inline editing
   const ta = $<HTMLTextAreaElement>('edit-message');
   const inp = $<HTMLInputElement>('edit-name');
-  const noteInp = $<HTMLInputElement>('edit-note');
+  const noteInp = $<HTMLTextAreaElement>('edit-note');
   const count = $('edit-count');
   const field = () => (editing === 'message' ? ta : editing === 'note' ? noteInp : inp);
   const updateCount = () => {
@@ -130,7 +131,7 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
     // at least 16px so iOS doesn't zoom the page on focus
     Object.assign(el.style, {
       fontSize: `max(16px, ${css(m || which === 'name' ? info.size : info.size * NOTE_SCALE)})`,
-      lineHeight: `max(1.2em, ${css(36 * info.n)})`,
+      lineHeight: `max(1.2em, ${css((which === 'note' ? NOTE_SCALE : 1) * LINE_H * info.n)})`,
     });
     if (document.activeElement !== el) el.value = m ? message : which === 'note' ? note : name;
     el.hidden = count.hidden = false;

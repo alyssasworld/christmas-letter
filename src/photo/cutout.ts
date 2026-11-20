@@ -106,6 +106,7 @@ const pixels = (c: HTMLCanvasElement) => c.getContext('2d')!.getImageData(0, 0, 
 export const MAX_BYTES = 25 * 1024 * 1024;
 export const MAX_SIDE = 1024;
 // Enough for the biggest globe scale (12 device px per art px); smaller scales downsample it smoothly.
+const FALLBACK_SIDE = 30 * 12; // framed-square fallback keeps its old 30 art px so it doesn't hide the tree
 export const MAX_SPRITE = { w: PHOTO_SLOT.maxW * 12, h: PHOTO_SLOT.maxH * 12 };
 
 /** Throws if the image can't be decoded. */
@@ -136,7 +137,7 @@ export async function makeSprite(bmp: ImageBitmap): Promise<{ sprite: ImageBitma
     return { sprite: await createImageBitmap(scale(full, box.x, box.y, box.w, box.h, f.w, f.h)), fallback: false };
   } catch {
     const s = Math.min(bmp.width, bmp.height);
-    const side = Math.min(MAX_SPRITE.w, MAX_SPRITE.h);
+    const side = FALLBACK_SIDE;
     const c = scale(bmp, (bmp.width - s) >> 1, (bmp.height - s) >> 1, s, s, side, side);
     const g = c.getContext('2d')!;
     g.strokeStyle = PALETTE.cream;
