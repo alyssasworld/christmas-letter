@@ -45,6 +45,7 @@ describe('note', () => {
     expect(t.length).toBeLessThanOrEqual(60);
     expect(wrapMessage(t, NOTE_COLS).length).toBeLessThanOrEqual(NOTE_ROWS);
   });
+  it('keeps a short note as is', () => expect(clampNote('Hi!')).toBe('Hi!'));
   it('emoji-only note sanitises to empty', () => expect(clampNote('🎄🎅')).toBe(''));
 });
 
@@ -71,9 +72,16 @@ describe('fitText', () => {
     expect(f.n).toBeLessThan(1);
     expect(f.fits).toBe(true);
   });
-  it('noteRows = 0 gives the same size as before', () =>
-    expect(fitText(['hi'], measure, 10000, 300, 0)).toEqual(fitText(['hi'], measure, 10000, 300)));
-  it('reserves height for note rows', () =>
-    expect(fitText(['hi'], measure, 10000, 300, 2).n).toBeLessThanOrEqual(fitText(['hi'], measure, 10000, 300).n));
+  it('noteRows = 0 adds nothing: height 152 and 304 are exact thresholds for n = 1 and 2', () => {
+    expect(fitText(['hi'], measure, 10000, 152, 0).n).toBe(1);
+    expect(fitText(['hi'], measure, 10000, 304, 0).n).toBe(2);
+    expect(fitText(['hi'], measure, 10000, 304, 0)).toEqual(fitText(['hi'], measure, 10000, 304));
+  });
+  it('reserves height for note rows', () => {
+    expect(fitText(['hi'], measure, 10000, 160).n).toBe(1);
+    const f = fitText(['hi'], measure, 10000, 160, 2);
+    expect(f.n).toBeLessThan(1);
+    expect(f.fits).toBe(true);
+  });
   it('is limited by height too', () => expect(fitText(['hi'], measure, 10000, 300).n).toBe(1));
 });
