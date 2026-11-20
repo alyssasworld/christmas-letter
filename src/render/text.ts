@@ -9,7 +9,7 @@ export const MAX_MESSAGE = MAX_COLS * MAX_ROWS;
 export const MAX_NAME = 16;
 export const NOTE_COLS = 30;
 export const NOTE_ROWS = 2;
-export const MAX_NOTE = 60;
+export const MAX_NOTE = 45;
 export const NOTE_SCALE = 0.6; // note glyph size relative to the greeting
 export const LINE_H = 36; // font px: ascender 28.3 + descender 7.1
 export const PAD_X = 12; // font px: outline, left margin, and the skew leaning the tops right
@@ -54,7 +54,7 @@ export function clampMessage(text: string) {
   while (wrapMessage(t).length > MAX_ROWS) t = t.slice(0, -1);
   return t;
 }
-/** Sanitised note cut to the longest prefix that fits 2 lines of 30. */
+/** Sanitised note cut to MAX_NOTE and to the longest prefix that fits 2 lines of 30. */
 export function clampNote(text: string) {
   let t = sanitize(text).slice(0, MAX_NOTE);
   while (wrapMessage(t, NOTE_COLS).length > NOTE_ROWS) t = t.slice(0, -1);
@@ -84,9 +84,9 @@ export function layoutLine(line: string, advance: (ch: string) => number, seed: 
 }
 
 /**
- * Largest integer n (device px per font px, so Pixelta stays crisp) at which every line fits width and the rows used fit height:
+ * Largest n (device px per font px) at which every line fits width and the rows used fit height:
  * the greeting's msgRows (at least 1), the sign-off, and noteRows of note. measure(line, i) is the line's width in font px (note lines already times NOTE_SCALE).
- * If even n = 1 doesn't fit, n is fractional: crispness yields to never overflowing.
+ * Not floored to an integer: the glyphs are slanted and wobbled, so anti-aliased anyway, and flooring shrank the greeting on phones (2.9 -> 2).
  */
 export function fitText(
   lines: string[],
@@ -99,7 +99,7 @@ export function fitText(
   const w = Math.max(...lines.map(measure)) + PAD_X;
   const h = (Math.max(msgRows, 1) + 1) * LINE_H + PAD_Y + (noteRows > 0 ? (0.25 + noteRows * NOTE_SCALE) * LINE_H : 0);
   const k = Math.min(areaW / w, areaH / h);
-  const n = k >= 1 ? Math.floor(k) : k;
+  const n = k;
   return { n, size: n * FONT.nativeSize, fits: w * n <= areaW + 1e-6 && h * n <= areaH + 1e-6 };
 }
 
