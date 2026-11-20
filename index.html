@@ -47,7 +47,7 @@
     <main id="letter-screen" hidden>
       <div class="envelope" id="envelope" aria-hidden="true" hidden></div>
       <p class="letter-hint" id="letter-hint">
-        Tap the message or your name to edit
+        Tap the message, note or your name to edit
         <svg class="pencil" viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
           <path fill="#ea99f4" d="M6 0h2v1H7v1H6z" />
           <path fill="#ffeb14" d="M5 1h1v1h1v1H6v1H5V3H4V2h1zM3 3h1v1h1v1H4v1H3V5H2V4h1zM1 5h1v1H1z" />
@@ -59,7 +59,9 @@
         <canvas id="letter" role="img" aria-label="" tabindex="0"></canvas>
         <button class="edit-hit" id="edit-message-btn" type="button" aria-label="Edit message"></button>
         <button class="edit-hit" id="edit-name-btn" type="button" aria-label="Edit name"></button>
+        <button class="edit-hit" id="edit-note-btn" type="button" aria-label="Edit note"></button>
         <textarea id="edit-message" hidden aria-label="Message" aria-describedby="edit-count" maxlength="54" spellcheck="false"></textarea>
+        <input id="edit-note" hidden aria-label="Note" aria-describedby="edit-count" maxlength="60" spellcheck="false" autocomplete="off" />
         <input id="edit-name" hidden aria-label="Your name" aria-describedby="edit-count" maxlength="16" spellcheck="false" autocomplete="off" />
         <span id="edit-count" hidden></span>
         <p class="sr-only" id="letter-text"></p>

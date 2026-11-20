@@ -77,6 +77,28 @@ test.describe('letter editing', () => {
     await expect(page.locator('#letter')).toHaveAttribute('aria-label', /Love, Alyssa /);
   });
 
+  test('note: edits, fits on the smallest letter, persists, and an empty note keeps the greeting size', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto('/?screen=letter');
+    const canvas = page.locator('#letter');
+    const before = await canvas.getAttribute('data-font-px');
+    await page.click('#edit-message-btn');
+    await page.fill('#edit-message', 'Wishing you all a wonderful holiday full of joy and cheer');
+    await page.keyboard.press('Enter');
+    await page.click('#edit-note-btn');
+    await page.fill('#edit-note', 'n'.repeat(80));
+    await expect(page.locator('#edit-note')).toHaveValue(/^.{1,60}$/);
+    await page.keyboard.press('Enter');
+    await expect(canvas).toHaveAttribute('data-text-fits', 'true');
+    await page.reload();
+    expect(await page.evaluate(() => localStorage.getItem('shake-a-memory:note'))).toHaveLength(60);
+    // empty note: same greeting size as the untouched default letter
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    expect(await canvas.getAttribute('data-font-px')).toBe(before);
+    await expect(page.locator('#letter-hint')).toHaveText('Tap the message, note or your name to edit');
+  });
+
   test('Make another confirms, clears and returns to the globe', async ({ page }) => {
     await page.goto('/?screen=letter');
     await expect(page.locator('#globe-screen')).toBeHidden();
@@ -90,6 +112,7 @@ test.describe('letter editing', () => {
     await expect(page.locator('#letter-screen')).toBeHidden();
     await expect(page.locator('#letter-btn')).toBeHidden();
     await expect(page.locator('#globe')).toBeFocused();
+    expect(await page.evaluate(() => localStorage.getItem('shake-a-memory:note'))).toBe('');
   });
 });
 
@@ -106,8 +129,8 @@ test('the hint and edit boxes are there, and shake does not leave the globe scre
   await page.click('#shake-btn');
   await expect(page.locator('#letter-screen')).toBeHidden();
   await page.goto('/?screen=letter');
-  await expect(page.locator('#letter-hint')).toContainText('Tap the message or your name to edit');
-  for (const id of ['edit-message-btn', 'edit-name-btn']) {
+  await expect(page.locator('#letter-hint')).toContainText('Tap the message, note or your name to edit');
+  for (const id of ['edit-message-btn', 'edit-note-btn', 'edit-name-btn']) {
     // the dashed box is snug; its ::before keeps the tap target at least 44px
     const t = await page.locator('#' + id).evaluate((el) => {
       const c = getComputedStyle(el, '::before');

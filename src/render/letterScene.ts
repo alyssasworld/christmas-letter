@@ -17,7 +17,7 @@ export const BELOW_LETTER = 124; // CSS px under the letter: buttons row, note a
 /** CSS px the "Tap the message…" hint line takes above the letter (same size as .hint, 1 or 2 lines, plus its gap). */
 export function hintHeight(vpW: number, dpr: number) {
   const fontPx = Math.max(1, Math.round(dpr * 0.6)) / dpr; // CSS px per font px, as --btn-font
-  const textW = 40 * 12.5 * fontPx; // ~40 chars at the average advance, pencil included
+  const textW = 46 * 12.5 * fontPx; // ~46 chars at the average advance, pencil included
   const lines = textW > vpW - 16 ? 2 : 1;
   return Math.ceil(lines * fontPx * (100 / 3) * 1.2) + 12;
 }

@@ -49,6 +49,12 @@ export const prefs = {
   set message(v: string) {
     write('message', v);
   },
+  get note(): string {
+    return read('note') ?? '';
+  },
+  set note(v: string) {
+    write('note', v);
+  },
   get name(): string {
     return read('name') ?? '';
   },

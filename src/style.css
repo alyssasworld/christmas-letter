@@ -407,6 +407,7 @@ dialog::backdrop {
   image-rendering: pixelated;
 }
 #edit-message,
+#edit-note,
 #edit-name {
   position: absolute;
   margin: 0;
