@@ -85,7 +85,7 @@ test.describe('letter editing', () => {
     await page.click('#edit-message-btn');
     await page.fill('#edit-message', 'Wishing you all a wonderful holiday full of joy and cheer');
     await page.keyboard.press('Enter');
-    await page.click('#edit-note-btn', { position: { x: 4, y: 4 } }); // clear of the name box overlapping its lower edge
+    await page.click('#edit-note-btn');
     await page.fill('#edit-note', 'n'.repeat(80));
     await expect(page.locator('#edit-note')).toHaveValue(/^.{1,60}$/);
     await page.keyboard.press('Enter');

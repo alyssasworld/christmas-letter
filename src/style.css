@@ -379,6 +379,9 @@ dialog::backdrop {
     opacity: 0.3;
   }
 }
+#edit-note-btn {
+  z-index: 1; /* DOM order is the tab order; the note wins where its target overlaps the name's */
+}
 /* after the first edit they only show on hover or focus */
 #letter-screen.edited .edit-hit {
   animation: none;
