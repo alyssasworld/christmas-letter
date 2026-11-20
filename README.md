@@ -48,7 +48,7 @@ All phases in `SPEC.md` are done.
 > **Your photos stay on your device.**
 > This app runs entirely in your browser. Your photo is never uploaded, stored, or sent to me, to any AI service, or to any third party.
 > This uses @imgly/background-removal, which is an in-browser background removal, meaning that your images remain secure within your own devices: refreshing or closing the page clears it.
-> The web app only remembers your sound, song and background choices and your last message, in your own browser.
+> The web app only remembers your sound and background choices and what you write, in your own browser.
 > GIFs you save go only where you choose to share them.
 
 The site only loads its own static files. There's no backend, no accounts and no analytics, and the background-removal model is self-hosted rather than loaded from a CDN.
