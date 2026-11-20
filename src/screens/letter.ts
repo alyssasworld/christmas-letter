@@ -260,7 +260,7 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
   $('gif-close').addEventListener('click', () => ready.close());
   shareBtn.addEventListener('click', async () => {
     try {
-      await navigator.share({ files: [shareFile!], title: 'Shake-a-Memory' });
+      await navigator.share({ files: [shareFile!], title: 'Create a Christmas Letter' });
     } catch (e) {
       if ((e as Error).name !== 'AbortError') where.textContent = "Couldn't open sharing. Press and hold the picture to save it.";
     }

@@ -43,6 +43,9 @@ export interface GlobeLayout {
   uiPx: number; // device px per pixel for icons, button frames and labels
 }
 
+/** "Merry Christmas!" width in font px (Pixelta Rounded with the wobble), measured in the browser. */
+export const GREETING_W = 210;
+
 /**
  * Globe screen: background covers the viewport at an integer scale; the globe stands on the window sill at the
  * same scale when it fits, otherwise at the largest integer scale that leaves room for the corner icons and title above.
@@ -59,7 +62,8 @@ export function layoutGlobe(vp: Viewport): GlobeLayout {
 
   // UI pixel: icons are 8 art px; aim for ~3 CSS px per pixel on desktop, never below 2 device px.
   const uiPx = uiPixel(vp.dpr);
-  const textPx = Math.max(1, Math.round(bgScale / 2.5));
+  // portrait: the greeting spans ~70% of the width (bgScale barely grows on a narrow screen, so it looked tiny on phones)
+  const textPx = Math.max(1, Math.round(bgScale / 2.5), H > W ? (0.7 * W) / GREETING_W : 0);
 
   const cornerRow = 16 * uiPx + 8 * vp.dpr; // corner button height + gap
   const titleH = Math.ceil((100 / 3) * textPx * 1.4); // one line of the title font, plus wobble room
