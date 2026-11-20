@@ -87,11 +87,11 @@ test.describe('letter editing', () => {
     await page.keyboard.press('Enter');
     await page.click('#edit-note-btn');
     await page.fill('#edit-note', 'n'.repeat(80));
-    await expect(page.locator('#edit-note')).toHaveValue(/^.{1,60}$/);
+    await expect(page.locator('#edit-note')).toHaveValue(/^.{1,45}$/);
     await page.keyboard.press('Enter');
     await expect(canvas).toHaveAttribute('data-text-fits', 'true');
     await page.reload();
-    expect(await page.evaluate(() => localStorage.getItem('shake-a-memory:note'))).toHaveLength(60);
+    expect(await page.evaluate(() => localStorage.getItem('shake-a-memory:note'))).toHaveLength(45);
     // empty note: same greeting size as the untouched default letter
     await page.evaluate(() => localStorage.clear());
     await page.reload();
