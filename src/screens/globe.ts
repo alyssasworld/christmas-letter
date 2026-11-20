@@ -2,7 +2,7 @@
 import { ASSETS, BACKGROUNDS, BG_VARIANTS, bgSrc } from '../assets/manifest.ts';
 import { createMusicBox } from '../audio/musicbox.ts';
 import { mountPhotoUi } from '../photo/ui.ts';
-import { drawGlobe, loadGlobeImages, setPhoto } from '../render/globeScene.ts';
+import { drawGlobe, load, loadGlobeImages, setPhoto } from '../render/globeScene.ts';
 import { layoutGlobe } from '../render/scale.ts';
 import { createSnow, shake, stepSnow, type Snow } from '../render/snow.ts';
 import { prefs } from '../state.ts';
@@ -30,6 +30,7 @@ export async function mountGlobeScreen(onPhoto: () => void) {
   if (REPO_URL) Object.assign(gh, { href: REPO_URL, hidden: false });
 
   let background = prefs.background;
+  let variant: keyof typeof BG_VARIANTS = 'desktop';
   let tiltPx = 0; // CSS px per globe art px, for the dome tilt
 
   function layout() {
@@ -40,6 +41,7 @@ export async function mountGlobeScreen(onPhoto: () => void) {
     const css = (dev: number) => `${dev / dpr}px`;
     tiltPx = L.globeScale / dpr;
     const v = BG_VARIANTS[L.variant];
+    variant = L.variant;
 
     root.style.setProperty('--ui', css(L.uiPx));
     root.style.setProperty('--font-px', css(L.textPx));
@@ -79,8 +81,17 @@ export async function mountGlobeScreen(onPhoto: () => void) {
   window.visualViewport?.addEventListener('resize', schedule);
   layout();
 
-  $('bg-btn').addEventListener('click', () => {
-    background = BACKGROUNDS[(BACKGROUNDS.indexOf(background) + 1) % BACKGROUNDS.length];
+  const oldBg = $('bg-prev');
+  let target = background; // where rapid taps are heading, ahead of what's shown
+  $('bg-btn').addEventListener('click', async () => {
+    const next = (target = BACKGROUNDS[(BACKGROUNDS.indexOf(target) + 1) % BACKGROUNDS.length]);
+    await load(bgSrc(next, variant)).catch(() => {}); // fetch + decode first, so the swap never shows a blank frame
+    if (next !== target) return; // a later tap overtook this one
+    oldBg.style.cssText = bg.style.cssText; // freeze the old scene on top...
+    oldBg.classList.remove('fade');
+    void oldBg.offsetWidth; // restart the animation
+    oldBg.classList.add('fade');
+    background = next; // ...swap underneath, and fade the old one out
     prefs.background = background;
     layout();
   });
