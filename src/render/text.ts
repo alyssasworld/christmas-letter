@@ -84,12 +84,20 @@ export function layoutLine(line: string, advance: (ch: string) => number, seed: 
 }
 
 /**
- * Largest integer n (device px per font px, so Pixelta stays crisp) at which every line fits width and the four rows fit height.
- * measure(line, i) is the line's width in font px (note lines already times NOTE_SCALE); noteRows reserves height for them. If even n = 1 doesn't fit, n is fractional: crispness yields to never overflowing.
+ * Largest integer n (device px per font px, so Pixelta stays crisp) at which every line fits width and the rows used fit height:
+ * the greeting's msgRows (at least 1), the sign-off, and noteRows of note. measure(line, i) is the line's width in font px (note lines already times NOTE_SCALE).
+ * If even n = 1 doesn't fit, n is fractional: crispness yields to never overflowing.
  */
-export function fitText(lines: string[], measure: (line: string, i: number) => number, areaW: number, areaH: number, noteRows = 0) {
+export function fitText(
+  lines: string[],
+  measure: (line: string, i: number) => number,
+  areaW: number,
+  areaH: number,
+  msgRows: number,
+  noteRows = 0,
+) {
   const w = Math.max(...lines.map(measure)) + PAD_X;
-  const h = (MAX_ROWS + 1) * LINE_H + PAD_Y + (noteRows > 0 ? (0.25 + noteRows * NOTE_SCALE) * LINE_H : 0);
+  const h = (Math.max(msgRows, 1) + 1) * LINE_H + PAD_Y + (noteRows > 0 ? (0.25 + noteRows * NOTE_SCALE) * LINE_H : 0);
   const k = Math.min(areaW / w, areaH / h);
   const n = k >= 1 ? Math.floor(k) : k;
   return { n, size: n * FONT.nativeSize, fits: w * n <= areaW + 1e-6 && h * n <= areaH + 1e-6 };

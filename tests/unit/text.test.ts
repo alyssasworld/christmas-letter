@@ -62,7 +62,7 @@ describe('layoutLine', () => {
 describe('fitText', () => {
   const measure = (l: string) => l.length * 12.5;
   it('picks the largest integer size whose widest line fits', () => {
-    const f = fitText(['Merry Christmas &', 'Love, Your Name'], measure, 1188, 1080);
+    const f = fitText(['Merry Christmas &', 'Love, Your Name'], measure, 1188, 1080, 2);
     expect(Number.isInteger(f.n)).toBe(true);
     expect(f.fits).toBe(true);
     const widest = 17 * 12.5 + 12;
@@ -70,22 +70,28 @@ describe('fitText', () => {
     expect(widest * (f.n + 1)).toBeGreaterThan(1188);
   });
   it('goes fractional rather than overflow', () => {
-    const f = fitText(['a'.repeat(22)], measure, 100, 100);
+    const f = fitText(['a'.repeat(22)], measure, 100, 100, 1);
     expect(f.n).toBeLessThan(1);
     expect(f.fits).toBe(true);
   });
-  it('noteRows = 0 adds nothing: height 152 and 304 are exact thresholds for n = 1 and 2', () => {
-    expect(fitText(['hi'], measure, 10000, 152, 0).n).toBe(1);
-    expect(fitText(['hi'], measure, 10000, 304, 0).n).toBe(2);
-    expect(fitText(['hi'], measure, 10000, 304, 0)).toEqual(fitText(['hi'], measure, 10000, 304));
+  it('reserves the greeting rows used plus the sign-off: 2 rows need 116 for n = 1, 232 for n = 2', () => {
+    expect(fitText(['hi'], measure, 10000, 115, 2).n).toBeLessThan(1);
+    expect(fitText(['hi'], measure, 10000, 116, 2).n).toBe(1);
+    expect(fitText(['hi'], measure, 10000, 231, 2).n).toBe(1);
+    expect(fitText(['hi'], measure, 10000, 232, 2).n).toBe(2);
+  });
+  it('a shorter greeting gets a bigger size, and zero rows count as one', () => {
+    expect(fitText(['hi'], measure, 10000, 300, 1).n).toBe(3);
+    expect(fitText(['hi'], measure, 10000, 300, 3).n).toBe(1);
+    expect(fitText(['hi'], measure, 10000, 300, 0)).toEqual(fitText(['hi'], measure, 10000, 300, 1));
   });
   it('reserves height for note rows', () => {
-    expect(fitText(['hi'], measure, 10000, 160).n).toBe(1);
-    const f = fitText(['hi'], measure, 10000, 160, 2);
+    expect(fitText(['hi'], measure, 10000, 168, 2).n).toBe(1);
+    const f = fitText(['hi'], measure, 10000, 168, 2, 2);
     expect(f.n).toBeLessThan(1);
     expect(f.fits).toBe(true);
   });
-  it('is limited by height too', () => expect(fitText(['hi'], measure, 10000, 300).n).toBe(1));
+  it('is limited by height too', () => expect(fitText(['hi'], measure, 10000, 300, 3).n).toBe(1));
 });
 
 describe('noteGlyphScale', () => {

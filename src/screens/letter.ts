@@ -1,6 +1,6 @@
 // Letter screen (SPEC §3.2): envelope transition, one canvas with paper, border, mini globe and text (so Phase 6 can encode it),
 // inline editing, and Make another.
-import { ASSETS } from '../assets/manifest.ts';
+import { ASSETS, FONT } from '../assets/manifest.ts';
 import type { createMusicBox } from '../audio/musicbox.ts';
 import { drawGlobe, type GlobeImages } from '../render/globeScene.ts';
 import { layoutLetter, loadLetterImages, LETTER, renderStatic, type TextInfo } from '../render/letterScene.ts';
@@ -16,7 +16,7 @@ import {
   MAX_MESSAGE,
   MAX_NAME,
   MAX_NOTE,
-  NOTE_SCALE,
+  noteGlyphScale,
   MAX_ROWS,
   wrapMessage,
 } from '../render/text.ts';
@@ -130,8 +130,8 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
     place(el, r);
     // at least 16px so iOS doesn't zoom the page on focus
     Object.assign(el.style, {
-      fontSize: `max(16px, ${css(m || which === 'name' ? info.size : info.size * NOTE_SCALE)})`,
-      lineHeight: `max(1.2em, ${css((which === 'note' ? NOTE_SCALE : 1) * LINE_H * info.n)})`,
+      fontSize: `max(16px, ${css(m || which === 'name' ? info.size : noteGlyphScale(info.n) * FONT.nativeSize)})`,
+      lineHeight: `max(1.2em, ${css((which === 'note' ? noteGlyphScale(info.n) : 1) * LINE_H * info.n)})`,
     });
     if (document.activeElement !== el) el.value = m ? message : which === 'note' ? note : name;
     el.hidden = count.hidden = false;

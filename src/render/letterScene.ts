@@ -127,15 +127,21 @@ export function drawText(
           : laid[lines.length].width,
     aw,
     ah,
+    lines.length,
     noteLines.length,
   );
   const { n } = fit;
   const gs = noteGlyphScale(n);
-  const noteTop = ay + (PAD_TOP + Math.max(lines.length, 1) * LINE_H + 0.25 * LINE_H) * n;
-  const noteLineH = NOTE_SCALE * LINE_H * n;
-  // the prompt has no reserved room, so it only shows when it ends above the sign-off
-  const showPrompt = prompt && !noteLines.length && noteTop + noteLineH <= ay + ah - (PAD_TOP + DESC + ASC + 2) * n;
+  const noteLineH = gs * LINE_H;
+  const signTop = ay + ah - (PAD_TOP + DESC + ASC + 2) * n;
+  const msgH = (PAD_TOP + Math.max(lines.length, 1) * LINE_H) * n;
+  // the prompt has no reserved room, so it only shows when the block still ends above the sign-off
+  const showPrompt = prompt && !noteLines.length && msgH + 0.25 * LINE_H * n + noteLineH <= signTop - ay;
   const drawn = showPrompt ? [layoutLine(PROMPT, advance, 21)] : noteLaid;
+  const blockH = msgH + (drawn.length ? 0.25 * LINE_H * n + drawn.length * noteLineH : 0);
+  const top = ay + Math.max(0, Math.round((signTop - ay - blockH) / 2)); // greeting + note centred above the sign-off
+  const noteTop = top + msgH + 0.25 * LINE_H * n;
+  const cx = ax + aw / 2;
 
   ctx.font = `${fit.size}px ${FAMILY}`;
   ctx.textBaseline = 'alphabetic';
@@ -158,32 +164,35 @@ export function drawText(
   if (skip !== 'message') {
     // all outlines first, so a neighbour's outline never cuts into a letter's red
     for (const fill of [null, RED]) {
-      laid.slice(0, -1).forEach((l, i) => l.glyphs.forEach((g) => paint(g, ax + 3 * n, ay + (PAD_TOP + ASC + i * LINE_H) * n, fill)));
+      laid
+        .slice(0, -1)
+        .forEach((l, i) => l.glyphs.forEach((g) => paint(g, cx - (l.width * n) / 2, top + (PAD_TOP + ASC + i * LINE_H) * n, fill)));
     }
   }
   if (skip !== 'note' && drawn.length) {
     ctx.font = `${gs * FONT.nativeSize}px ${FAMILY}`;
     drawn.forEach((l, i) =>
-      l.glyphs.forEach((g) => paint(g, ax + 3 * n, noteTop + ASC * NOTE_SCALE * n + i * noteLineH, showPrompt ? FAINT : INK, gs)),
+      l.glyphs.forEach((g) => paint(g, cx - (l.width * gs) / 2, noteTop + ASC * gs + i * noteLineH, showPrompt ? FAINT : INK, gs)),
     );
     ctx.font = `${fit.size}px ${FAMILY}`;
   }
   const last = laid[laid.length - 1];
   const signBase = ay + ah - (PAD_TOP + DESC) * n;
-  const signX = ax + aw - (last.width + 9) * n;
+  const signX = cx - (last.width * n) / 2;
   last.glyphs.forEach((g, i) => {
     if (i >= GREETING.length && skip === 'name') return;
     paint(g, signX, signBase, i >= GREETING.length && !name ? FAINT : INK);
   });
 
-  const signTop = signBase - (ASC + 2) * n;
   const msgW = Math.max(...laid.slice(0, -1).map((l) => l.width), 0);
+  const centred = (w: number, y: number, h: number): Rect => ({ x: cx - w / 2, y, w, h });
+  const noteW = (Math.max(...drawn.map((l) => l.width), 0) + PAD_X) * gs;
   return {
     ...fit,
     lines: lines.length,
-    message: { x: ax, y: ay, w: (msgW + PAD_X) * n, h: (PAD_TOP + ASC + DESC + 2 + (Math.max(lines.length, 1) - 1) * LINE_H) * n },
-    messageEdit: { x: ax, y: ay, w: aw, h: (PAD_TOP + MAX_LINES_H) * n },
-    note: { x: ax, y: noteTop, w: (Math.max(...drawn.map((l) => l.width), 0) + PAD_X) * gs, h: drawn.length * noteLineH },
+    message: centred((msgW + PAD_X) * n, top, (PAD_TOP + ASC + DESC + 2 + (Math.max(lines.length, 1) - 1) * LINE_H) * n),
+    messageEdit: { x: ax, y: top, w: aw, h: Math.min((PAD_TOP + MAX_LINES_H) * n, ay + ah - top) },
+    note: centred(noteW, noteTop, drawn.length * noteLineH),
     noteEdit: { x: ax, y: noteTop, w: aw, h: 2 * noteLineH },
     sign: { x: signX - 2 * n, y: signTop, w: (last.width + 8) * n, h: signBase + (DESC + 2) * n - signTop },
     nameX: signX + last.glyphs[GREETING.length].x * n,
