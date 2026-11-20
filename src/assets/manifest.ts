@@ -32,7 +32,8 @@ export const ASSETS = {
 } as const;
 
 // Owner decision: the person stands in the middle of the globe, in front of the tree. x = centre column.
-export const PHOTO_SLOT = { x: Math.round(DOME.cx), bottom: GROUND_Y + 1, maxW: 30, maxH: 44 } as const;
+// maxW = tree width, so wide poses (arm out) are sized by height rather than shrunk.
+export const PHOTO_SLOT = { x: Math.round(DOME.cx), bottom: GROUND_Y + 1, maxW: 48, maxH: 44 } as const;
 
 // Owner backgrounds, native size (supplied at 5x). Pick the variant whose aspect best matches the viewport,
 // then cover it at an integer scale. All six are in the picker until the owner chooses which ship.

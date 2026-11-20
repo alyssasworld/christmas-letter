@@ -194,6 +194,9 @@ canvas,
   font-size: calc(var(--btn-font) * 100 / 3);
 }
 .link {
+  /* flex centring so the <a> lines up with the <button> (buttons centre their text, anchors don't) */
+  display: inline-flex;
+  align-items: center;
   background: none;
   border: 0;
   padding: 8px 4px;
