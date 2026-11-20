@@ -50,7 +50,7 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
 
   function renderLayer() {
     const { scale: s } = L;
-    info = renderStatic(layer, letterImg, L.orientation, s, message, name, editing ?? undefined);
+    info = renderStatic(layer, letterImg, L.orientation, s, message, name, '', editing ?? undefined);
     canvas.dataset.textFits = String(info.fits);
     canvas.dataset.lines = String(info.lines);
     canvas.dataset.fontPx = info.size.toFixed(2);
@@ -190,7 +190,7 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
     try {
       const { encodeLetterGif } = await import('../render/gif.ts');
       let last = 0;
-      const { blob } = await encodeLetterGif({ img, letterImg, o: L.orientation, message, name }, L.scale, coarse, (n, total) => {
+      const { blob } = await encodeLetterGif({ img, letterImg, o: L.orientation, message, name, note: '' }, L.scale, coarse, (n, total) => {
         if (n - last >= 10) note.textContent = `Making GIF… ${Math.round((n / total) * 100)}%`;
         if (n - last >= 10) last = n;
       });

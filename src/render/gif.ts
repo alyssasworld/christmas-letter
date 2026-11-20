@@ -33,14 +33,15 @@ interface Job {
   o: Orientation;
   message: string;
   name: string;
+  note: string;
 }
 
 class OverBudget extends Error {}
 
 /** Draws frames 0..GIF_FRAMES-1 in order; the sim, its RNG and the shake burst are the same on every call. */
-function* frames({ img, letterImg, o, message, name }: Job, s: number) {
+function* frames({ img, letterImg, o, message, name, note }: Job, s: number) {
   const layer = document.createElement('canvas');
-  renderStatic(layer, letterImg, o, s, message, name);
+  renderStatic(layer, letterImg, o, s, message, name, note);
   const cv = document.createElement('canvas');
   cv.width = layer.width;
   cv.height = layer.height;
