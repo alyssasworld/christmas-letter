@@ -7,6 +7,10 @@ export const MAX_COLS = 18;
 export const MAX_ROWS = 3;
 export const MAX_MESSAGE = MAX_COLS * MAX_ROWS;
 export const MAX_NAME = 16;
+export const NOTE_COLS = 30;
+export const NOTE_ROWS = 2;
+export const MAX_NOTE = 60;
+export const NOTE_SCALE = 0.6; // note glyph size relative to the greeting
 export const LINE_H = 36; // font px: ascender 28.3 + descender 7.1
 export const PAD_X = 12; // font px: outline, left margin, and the skew leaning the tops right
 const PAD_Y = 8;
@@ -50,6 +54,12 @@ export function clampMessage(text: string) {
   while (wrapMessage(t).length > MAX_ROWS) t = t.slice(0, -1);
   return t;
 }
+/** Sanitised note cut to the longest prefix that fits 2 lines of 30. */
+export function clampNote(text: string) {
+  let t = sanitize(text).slice(0, MAX_NOTE);
+  while (wrapMessage(t, NOTE_COLS).length > NOTE_ROWS) t = t.slice(0, -1);
+  return t;
+}
 export const clampName = (text: string) => sanitize(text).slice(0, MAX_NAME);
 
 export interface Glyph {
@@ -75,11 +85,11 @@ export function layoutLine(line: string, advance: (ch: string) => number, seed: 
 
 /**
  * Largest integer n (device px per font px, so Pixelta stays crisp) at which every line fits width and the four rows fit height.
- * measure(line, i) is the line's width in font px. If even n = 1 doesn't fit, n is fractional: crispness yields to never overflowing.
+ * measure(line, i) is the line's width in font px (note lines already times NOTE_SCALE); noteRows reserves height for them. If even n = 1 doesn't fit, n is fractional: crispness yields to never overflowing.
  */
-export function fitText(lines: string[], measure: (line: string, i: number) => number, areaW: number, areaH: number) {
+export function fitText(lines: string[], measure: (line: string, i: number) => number, areaW: number, areaH: number, noteRows = 0) {
   const w = Math.max(...lines.map(measure)) + PAD_X;
-  const h = (MAX_ROWS + 1) * LINE_H + PAD_Y;
+  const h = (MAX_ROWS + 1) * LINE_H + PAD_Y + (noteRows > 0 ? (0.25 + noteRows * NOTE_SCALE) * LINE_H : 0);
   const k = Math.min(areaW / w, areaH / h);
   const n = k >= 1 ? Math.floor(k) : k;
   return { n, size: n * FONT.nativeSize, fits: w * n <= areaW + 1e-6 && h * n <= areaH + 1e-6 };

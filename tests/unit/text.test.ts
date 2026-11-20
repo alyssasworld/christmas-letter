@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { clampMessage, clampName, fitText, layoutLine, sanitize, wrapMessage } from '../../src/render/text.ts';
+import {
+  NOTE_COLS,
+  NOTE_ROWS,
+  clampMessage,
+  clampName,
+  clampNote,
+  fitText,
+  layoutLine,
+  sanitize,
+  wrapMessage,
+} from '../../src/render/text.ts';
 
 describe('sanitize', () => {
   it('keeps ASCII, Latin-1 accents and curly punctuation', () => {
@@ -29,6 +39,15 @@ describe('limits', () => {
   it('clampName caps at 16', () => expect(clampName('n'.repeat(30))).toHaveLength(16));
 });
 
+describe('note', () => {
+  it('clampNote caps at 60 chars and 2 lines of 30', () => {
+    const t = clampNote('word '.repeat(40));
+    expect(t.length).toBeLessThanOrEqual(60);
+    expect(wrapMessage(t, NOTE_COLS).length).toBeLessThanOrEqual(NOTE_ROWS);
+  });
+  it('emoji-only note sanitises to empty', () => expect(clampNote('🎄🎅')).toBe(''));
+});
+
 describe('layoutLine', () => {
   const adv = () => 12;
   it('is identical for the same seed', () => expect(layoutLine('Hello', adv, 11)).toEqual(layoutLine('Hello', adv, 11)));
@@ -52,5 +71,9 @@ describe('fitText', () => {
     expect(f.n).toBeLessThan(1);
     expect(f.fits).toBe(true);
   });
+  it('noteRows = 0 gives the same size as before', () =>
+    expect(fitText(['hi'], measure, 10000, 300, 0)).toEqual(fitText(['hi'], measure, 10000, 300)));
+  it('reserves height for note rows', () =>
+    expect(fitText(['hi'], measure, 10000, 300, 2).n).toBeLessThanOrEqual(fitText(['hi'], measure, 10000, 300).n));
   it('is limited by height too', () => expect(fitText(['hi'], measure, 10000, 300).n).toBe(1));
 });
