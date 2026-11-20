@@ -1,4 +1,4 @@
-# Shake-a-Memory Christmas Letter 🎄
+# Create a Christmas Letter 🎄
 
 A cozy retro Christmas letter for yourself and friends. A Christmas gift from me to you <3
 

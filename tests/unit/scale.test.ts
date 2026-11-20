@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { layoutGlobe, pickVariant } from '../../src/render/scale.ts';
+import { GREETING_W, layoutGlobe, pickVariant } from '../../src/render/scale.ts';
 
 // SPEC §7 matrix, both orientations, at typical DPRs.
 const SIZES: [number, number, number][] = [
@@ -33,12 +33,24 @@ describe('pickVariant', () => {
 });
 
 describe('layoutGlobe', () => {
+  it('on a portrait phone the greeting spans about 70% of the width, never smaller than before', () => {
+    for (const vp of [{ w: 390, h: 664, dpr: 3 }, { w: 375, h: 667, dpr: 2 }, { w: 412, h: 839, dpr: 2.625 }]) {
+      const L = layoutGlobe(vp);
+      expect((GREETING_W * L.textPx) / (vp.w * vp.dpr)).toBeCloseTo(0.7, 2);
+    }
+  });
+  it('keeps the old greeting size on landscape screens', () => {
+    expect(layoutGlobe({ w: 1440, h: 900, dpr: 2 }).textPx).toBe(3);
+    expect(layoutGlobe({ w: 1920, h: 1080, dpr: 1 }).textPx).toBe(2);
+  });
+
   for (const vp of VIEWPORTS) {
     it(`${vp.w}x${vp.h}@${vp.dpr}`, () => {
       const L = layoutGlobe(vp);
       const W = vp.w * vp.dpr,
         H = vp.h * vp.dpr;
-      for (const k of ['bgScale', 'globeScale', 'textPx', 'uiPx'] as const) expect(Number.isInteger(L[k]) && L[k] >= 1).toBe(true);
+      for (const k of ['bgScale', 'globeScale', 'uiPx'] as const) expect(Number.isInteger(L[k]) && L[k] >= 1).toBe(true);
+      expect(L.textPx).toBeGreaterThanOrEqual(1); // fractional on portrait screens: the greeting is skewed, never on the pixel grid
       // background covers the viewport
       expect(L.bgX).toBeLessThanOrEqual(0);
       expect(L.bgY).toBeLessThanOrEqual(0);
