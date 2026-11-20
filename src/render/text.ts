@@ -103,5 +103,6 @@ export function fitText(
   return { n, size: n * FONT.nativeSize, fits: w * n <= areaW + 1e-6 && h * n <= areaH + 1e-6 };
 }
 
-/** Note glyph scale for greeting scale n: never above the n * NOTE_SCALE that fitText budgeted, whole device px when it can be. */
-export const noteGlyphScale = (n: number) => (n * NOTE_SCALE >= 1 ? Math.floor(n * NOTE_SCALE) : n * NOTE_SCALE);
+/** Note glyph scale for greeting scale n: exactly what fitText budgeted. Not floored: the note's glyphs are slanted and
+ * rotated, so they're anti-aliased anyway, and flooring shrank it to a third of the greeting on phones (n 3 -> 1). */
+export const noteGlyphScale = (n: number) => n * NOTE_SCALE;

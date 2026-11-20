@@ -98,8 +98,8 @@ describe('noteGlyphScale', () => {
   it.each([0.5, 1, 2, 3, 6, 8])('never exceeds the budgeted size at n = %s', (n) => {
     expect(noteGlyphScale(n)).toBeLessThanOrEqual(n * NOTE_SCALE);
   });
-  it('is a whole number once it reaches 1', () => {
-    expect(noteGlyphScale(3)).toBe(1);
-    expect(noteGlyphScale(6)).toBe(3);
+  it('is 0.6 of the greeting, not rounded down to a whole px', () => {
+    expect(noteGlyphScale(3)).toBeCloseTo(1.8);
+    expect(noteGlyphScale(6)).toBeCloseTo(3.6);
   });
 });
