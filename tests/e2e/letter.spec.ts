@@ -77,6 +77,27 @@ test.describe('letter editing', () => {
     await expect(page.locator('#letter')).toHaveAttribute('aria-label', /Love, Alyssa /);
   });
 
+  test('the on-screen keyboard (a shorter viewport) does not re-layout the letter while editing', async ({ page }) => {
+    await page.setViewportSize({ width: 393, height: 852 });
+    await page.goto('/?screen=letter');
+    const size = () =>
+      page.evaluate(() => [
+        (document.getElementById('letter') as HTMLCanvasElement).width,
+        document.getElementById('letter')!.offsetHeight,
+      ]);
+    const before = await size();
+    await page.click('#edit-message-btn');
+    await page.setViewportSize({ width: 393, height: 380 }); // keyboard open: wider than tall
+    await page.waitForTimeout(100);
+    expect(await size()).toEqual(before);
+    const [field, count] = await Promise.all(['#edit-message', '#edit-count'].map((s) => page.locator(s).boundingBox()));
+    expect(count!.y + count!.height).toBeLessThanOrEqual(field!.y + 1); // counter above the field, not over the next line
+    await page.keyboard.press('Enter');
+    await page.setViewportSize({ width: 393, height: 852 }); // keyboard closed
+    await page.waitForTimeout(100);
+    expect(await size()).toEqual(before);
+  });
+
   test('note: edits, fits on the smallest letter, persists, and an empty note keeps the greeting size', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 568 });
     await page.goto('/?screen=letter');

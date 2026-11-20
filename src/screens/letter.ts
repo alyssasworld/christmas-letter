@@ -78,9 +78,13 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
     box('edit-name-btn', info.sign);
   }
 
+  let lastW = 0;
   function layout() {
     const vv = window.visualViewport; // times its scale, so a pinch-zoom doesn't re-layout the letter smaller
     const vp = { w: vv ? vv.width * vv.scale : innerWidth, h: vv ? vv.height * vv.scale : innerHeight, dpr: dpr() };
+    // the on-screen keyboard only shortens the viewport: keep the letter as it is while a field is open (a rotation changes the width)
+    if (editing && vp.w === lastW) return;
+    lastW = vp.w;
     L = layoutLetter(vp, uiPixel(vp.dpr));
     // backing store at device res: every art pixel is exactly `scale` device px (this also resets the context state)
     canvas.width = L.w * L.scale;
@@ -136,8 +140,8 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
     });
     if (document.activeElement !== el) el.value = m ? message : which === 'note' ? note : name;
     el.hidden = count.hidden = false;
-    // counter sits just under the field
-    Object.assign(count.style, { left: css(r.x), top: css(r.y + r.h) });
+    // counter sits just above the field, so it never covers the next line or the keyboard side
+    Object.assign(count.style, { left: css(r.x), top: css(r.y), transform: 'translateY(-100%)' });
     updateCount();
     if (document.activeElement !== el) el.focus();
   }
@@ -154,7 +158,7 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
       describe();
     }
     ta.hidden = noteInp.hidden = inp.hidden = count.hidden = true;
-    renderLayer();
+    layout(); // catch up on any resize skipped while editing
     $(`edit-${which}-btn`).focus();
   }
   for (const el of [ta, noteInp, inp] as (HTMLTextAreaElement | HTMLInputElement)[]) {
