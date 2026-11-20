@@ -3,7 +3,7 @@
 import { ASSETS, FONT } from '../assets/manifest.ts';
 import { load } from './globeScene.ts';
 import { fitScale, type Viewport } from './scale.ts';
-import { fitText, layoutLine, LINE_H, PAD_X, wrapMessage } from './text.ts';
+import { fitText, layoutLine, LINE_H, NOTE_COLS, NOTE_SCALE, noteGlyphScale, PAD_X, wrapMessage } from './text.ts';
 
 // All sizes are multiples of 8 so the border stripes (period 8) tile cleanly.
 export const LETTER = {
@@ -17,7 +17,7 @@ export const BELOW_LETTER = 124; // CSS px under the letter: buttons row, note a
 /** CSS px the "Tap the message…" hint line takes above the letter (same size as .hint, 1 or 2 lines, plus its gap). */
 export function hintHeight(vpW: number, dpr: number) {
   const fontPx = Math.max(1, Math.round(dpr * 0.6)) / dpr; // CSS px per font px, as --btn-font
-  const textW = 40 * 12.5 * fontPx; // ~40 chars at the average advance, pencil included
+  const textW = 46 * 12.5 * fontPx; // ~46 chars at the average advance, pencil included
   const lines = textW > vpW - 16 ? 2 : 1;
   return Math.ceil(lines * fontPx * (100 / 3) * 1.2) + 12;
 }
@@ -70,6 +70,7 @@ const ASC = 28; // font px from the top of a line's glyphs to its baseline
 const DESC = 7;
 const PAD_TOP = 4;
 const GREETING = 'Love, ';
+const PROMPT = 'Add a little note';
 export const PLACEHOLDER = 'Your Name';
 const INK = '#2b2b2b';
 const FAINT = '#6b6152'; // placeholder name: lighter than the ink so it reads as editable, still 5:1 on the paper
@@ -90,18 +91,22 @@ export interface TextInfo {
   lines: number;
   message: Rect; // snug around the drawn message lines
   messageEdit: Rect; // room for all 3 lines, for the editor
+  note: Rect; // snug around the drawn note or prompt; zero height where the note would start when there is neither
+  noteEdit: Rect; // room for 2 note lines at full text width, for the editor
   sign: Rect; // snug around the drawn sign-off
   nameX: number;
 }
 
-/** Draws the message and sign-off. `skip` leaves one out while it is being edited. */
+/** Draws the message, note and sign-off. `skip` leaves one out while it is being edited; `prompt` shows the faint empty-note hint (never in the GIF). */
 export function drawText(
   ctx: CanvasRenderingContext2D,
   o: Orientation,
   s: number,
   message: string,
   name: string,
-  skip?: 'message' | 'name',
+  note: string,
+  skip?: 'message' | 'note' | 'name',
+  prompt = false,
 ): TextInfo {
   const T = LETTER[o].text;
   const [ax, ay, aw, ah] = [T.x * s, T.y * s, T.w * s, T.h * s];
@@ -110,14 +115,39 @@ export function drawText(
   ctx.font = `${FONT.nativeSize}px ${FAMILY}`;
   const advance = (ch: string) => ctx.measureText(ch).width; // device px at the native size = font px
   const laid = [...lines.map((l, i) => layoutLine(l, advance, 11 + i)), layoutLine(sign, advance, 31)];
-  const fit = fitText([...lines, sign], (_, i) => laid[i].width, aw, ah);
+  const noteLines = wrapMessage(note, NOTE_COLS);
+  const noteLaid = noteLines.map((l, i) => layoutLine(l, advance, 21 + i));
+  const fit = fitText(
+    [...lines, ...noteLines, sign],
+    (_, i) =>
+      i < lines.length
+        ? laid[i].width
+        : i < lines.length + noteLines.length
+          ? noteLaid[i - lines.length].width * NOTE_SCALE
+          : laid[lines.length].width,
+    aw,
+    ah,
+    lines.length,
+    noteLines.length,
+  );
   const { n } = fit;
+  const gs = noteGlyphScale(n);
+  const noteLineH = gs * LINE_H;
+  const signTop = ay + ah - (PAD_TOP + DESC + ASC + 2) * n;
+  const msgH = (PAD_TOP + Math.max(lines.length, 1) * LINE_H) * n;
+  // the prompt has no reserved room, so it only shows when the block still ends above the sign-off
+  const showPrompt = prompt && !noteLines.length && msgH + 0.25 * LINE_H * n + noteLineH <= signTop - ay;
+  const drawn = showPrompt ? [layoutLine(PROMPT, advance, 21)] : noteLaid;
+  const blockH = msgH + (drawn.length ? 0.25 * LINE_H * n + drawn.length * noteLineH : 0);
+  const top = ay + Math.max(0, Math.round((signTop - ay - blockH) / 2)); // greeting + note centred above the sign-off
+  const noteTop = top + msgH + 0.25 * LINE_H * n;
+  const cx = ax + aw / 2;
 
   ctx.font = `${fit.size}px ${FAMILY}`;
   ctx.textBaseline = 'alphabetic';
-  const paint = (g: (typeof laid)[0]['glyphs'][0], x0: number, y0: number, fill: string | null) => {
+  const paint = (g: (typeof laid)[0]['glyphs'][0], x0: number, y0: number, fill: string | null, u = n) => {
     ctx.save();
-    ctx.translate(Math.round(x0 + g.x * n), Math.round(y0 + g.dy * n));
+    ctx.translate(Math.round(x0 + g.x * u), Math.round(y0 + g.dy * u));
     ctx.transform(1, 0, SKEW, 1, 0, 0);
     ctx.rotate((g.rot * Math.PI) / 180);
     ctx.scale(g.scale, g.scale);
@@ -134,24 +164,36 @@ export function drawText(
   if (skip !== 'message') {
     // all outlines first, so a neighbour's outline never cuts into a letter's red
     for (const fill of [null, RED]) {
-      laid.slice(0, -1).forEach((l, i) => l.glyphs.forEach((g) => paint(g, ax + 3 * n, ay + (PAD_TOP + ASC + i * LINE_H) * n, fill)));
+      laid
+        .slice(0, -1)
+        .forEach((l, i) => l.glyphs.forEach((g) => paint(g, cx - (l.width * n) / 2, top + (PAD_TOP + ASC + i * LINE_H) * n, fill)));
     }
+  }
+  if (skip !== 'note' && drawn.length) {
+    ctx.font = `${gs * FONT.nativeSize}px ${FAMILY}`;
+    drawn.forEach((l, i) =>
+      l.glyphs.forEach((g) => paint(g, cx - (l.width * gs) / 2, noteTop + ASC * gs + i * noteLineH, showPrompt ? FAINT : INK, gs)),
+    );
+    ctx.font = `${fit.size}px ${FAMILY}`;
   }
   const last = laid[laid.length - 1];
   const signBase = ay + ah - (PAD_TOP + DESC) * n;
-  const signX = ax + aw - (last.width + 9) * n;
+  const signX = cx - (last.width * n) / 2;
   last.glyphs.forEach((g, i) => {
     if (i >= GREETING.length && skip === 'name') return;
     paint(g, signX, signBase, i >= GREETING.length && !name ? FAINT : INK);
   });
 
-  const signTop = signBase - (ASC + 2) * n;
   const msgW = Math.max(...laid.slice(0, -1).map((l) => l.width), 0);
+  const centred = (w: number, y: number, h: number): Rect => ({ x: cx - w / 2, y, w, h });
+  const noteW = (Math.max(...drawn.map((l) => l.width), 0) + PAD_X) * gs;
   return {
     ...fit,
     lines: lines.length,
-    message: { x: ax, y: ay, w: (msgW + PAD_X) * n, h: (PAD_TOP + ASC + DESC + 2 + (Math.max(lines.length, 1) - 1) * LINE_H) * n },
-    messageEdit: { x: ax, y: ay, w: aw, h: (PAD_TOP + MAX_LINES_H) * n },
+    message: centred((msgW + PAD_X) * n, top, (PAD_TOP + ASC + DESC + 2 + (Math.max(lines.length, 1) - 1) * LINE_H) * n),
+    messageEdit: { x: ax, y: top, w: aw, h: Math.min((PAD_TOP + MAX_LINES_H) * n, ay + ah - top) },
+    note: centred(noteW, noteTop, drawn.length * noteLineH),
+    noteEdit: { x: ax, y: noteTop, w: aw, h: 2 * noteLineH },
     sign: { x: signX - 2 * n, y: signTop, w: (last.width + 8) * n, h: signBase + (DESC + 2) * n - signTop },
     nameX: signX + last.glyphs[GREETING.length].x * n,
   };
@@ -166,13 +208,15 @@ export function renderStatic(
   s: number,
   message: string,
   name: string,
-  skip?: 'message' | 'name',
+  note: string,
+  skip?: 'message' | 'note' | 'name',
+  prompt = false,
 ) {
   cv.width = LETTER[o].w * s;
   cv.height = LETTER[o].h * s;
   const g = cv.getContext('2d')!;
   drawFrame(g, img, o, s);
-  const info = drawText(g, o, s, message, name, skip);
+  const info = drawText(g, o, s, message, name, note, skip, prompt);
   drawCredit(g, o, s);
   return info;
 }
@@ -187,7 +231,7 @@ function drawCredit(ctx: CanvasRenderingContext2D, o: Orientation, s: number) {
   const width = [...CREDIT].reduce((x, ch) => x + ctx.measureText(ch).width, 0); // font px
   // largest integer n whose glyphs fit 10 art px tall and the column; fractional (still inside) on tiny letters
   const k = Math.min((10 * s) / (ASC + DESC), ((o === 'landscape' ? 200 : 104) * s) / width);
-  const n = k >= 1 ? Math.floor(k) : k;
+  const n = (k >= 1 ? Math.floor(k) : k) * 0.8; // a touch smaller than the largest that fits
   ctx.font = `${n * FONT.nativeSize}px Pixelta, 'Pixelify Sans', monospace`;
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = 'rgb(43 43 43 / 0.75)';

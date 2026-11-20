@@ -56,11 +56,13 @@ for (const { w, h, dpr } of VIEWPORTS) {
 
 test('background picker cycles and is remembered', async ({ page }) => {
   await page.goto('/');
-  const bg = () => page.evaluate(() => getComputedStyle(document.getElementById('bg')!).backgroundImage);
+  const bg = (id = 'bg') => page.evaluate((id) => getComputedStyle(document.getElementById(id)!).backgroundImage, id);
   const first = await bg();
   await page.click('#bg-btn');
+  // the swap waits for the new scene to load, then the old one fades out on #bg-prev
+  await expect.poll(() => bg()).not.toBe(first);
   const second = await bg();
-  expect(second).not.toBe(first);
+  expect(await bg('bg-prev')).toBe(first);
   await page.reload();
   expect(await bg()).toBe(second);
 });

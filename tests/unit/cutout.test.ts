@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { alphaBBox, fitSize, largestComponent, type Pixels } from '../../src/photo/cutout.ts';
+import { alphaBBox, fitSize, dropSpecks, type Pixels } from '../../src/photo/cutout.ts';
 
 const px = (w: number, h: number, f: (x: number, y: number) => number[]): Pixels => {
   const data = new Uint8ClampedArray(w * h * 4);
@@ -26,15 +26,20 @@ describe('fitSize', () => {
   });
 });
 
-describe('largestComponent', () => {
-  it('keeps only the biggest blob, treating diagonal neighbours as connected, and keeps soft alpha', () => {
-    const rows = ['#.#....', '.#.....', '..#..##', '...#.##'];
+describe('dropSpecks', () => {
+  it('drops specks, treating diagonal neighbours as connected, and keeps soft alpha', () => {
+    const rows = ['#.#....', '.#.....', '..#.###', '...#.##'];
     const p = px(7, 4, (x, y) => (rows[y][x] === '#' ? [5, 6, 7, x === 0 ? 200 : 255] : [0, 0, 0, 0]));
-    largestComponent(p);
+    dropSpecks(p); // 4-pixel diagonal chain vs a 5-pixel blob: both over 2%
     expect(alphaAt(p, 0, 0)).toBe(200);
-    expect(alphaAt(p, 2, 0)).toBe(255);
-    expect(alphaAt(p, 2, 2)).toBe(255);
-    expect(alphaAt(p, 5, 2)).toBe(0);
-    expect(alphaAt(p, 6, 3)).toBe(0);
+    expect(alphaAt(p, 5, 2)).toBe(255);
+  });
+  it('keeps two big blobs across a gap and removes a tiny speck', () => {
+    // 12x12 blobs (144 px each) 3 columns apart; a 1 px speck is under 2% of 144
+    const p = px(30, 12, (x, y) => (x < 12 || (x >= 15 && x < 27) || (x === 29 && y === 0) ? [5, 6, 7, 255] : [0, 0, 0, 0]));
+    dropSpecks(p);
+    expect(alphaAt(p, 5, 5)).toBe(255);
+    expect(alphaAt(p, 20, 5)).toBe(255);
+    expect(alphaAt(p, 29, 0)).toBe(0);
   });
 });

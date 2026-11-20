@@ -38,12 +38,11 @@ export function fitSize(w: number, h: number, maxW: number, maxH: number) {
   return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
 }
 
-/** In place: zero every pixel (alpha, thresholded at 128) outside the largest 8-connected component; kept pixels are untouched. */
-export function largestComponent({ data, width, height }: Pixels) {
+/** In place: zero every pixel (alpha, thresholded at 128) in 8-connected components under 2% of the largest one's size, so a held cat or a loosely joined arm survives; kept pixels are untouched. */
+export function dropSpecks({ data, width, height }: Pixels) {
   const label = new Int32Array(width * height); // 0 = unvisited/transparent
   const stack: number[] = [];
-  let best = 0;
-  let bestSize = 0;
+  const sizes = [0]; // sizes[label]
   let n = 0;
   for (let s = 0; s < label.length; s++) {
     if (label[s] || data[s * 4 + 3] <= 128) continue;
@@ -67,9 +66,10 @@ export function largestComponent({ data, width, height }: Pixels) {
           stack.push(j);
         }
     }
-    if (size > bestSize) [best, bestSize] = [n, size];
+    sizes.push(size);
   }
-  for (let i = 0; i < label.length; i++) if (label[i] !== best) data.fill(0, i * 4, i * 4 + 4);
+  const min = Math.max(...sizes) * 0.02;
+  for (let i = 0; i < label.length; i++) if (sizes[label[i]] < min) data.fill(0, i * 4, i * 4 + 4);
 }
 
 /** Area-average-ish downscale: halve repeatedly with smoothing on, then a final step (keeps faces from going noisy). */
@@ -106,6 +106,7 @@ const pixels = (c: HTMLCanvasElement) => c.getContext('2d')!.getImageData(0, 0, 
 export const MAX_BYTES = 25 * 1024 * 1024;
 export const MAX_SIDE = 1024;
 // Enough for the biggest globe scale (12 device px per art px); smaller scales downsample it smoothly.
+const FALLBACK_SIDE = 30 * 12; // framed-square fallback keeps its old 30 art px so it doesn't hide the tree
 export const MAX_SPRITE = { w: PHOTO_SLOT.maxW * 12, h: PHOTO_SLOT.maxH * 12 };
 
 /** Throws if the image can't be decoded. */
@@ -128,7 +129,7 @@ export async function makeSprite(bmp: ImageBitmap): Promise<{ sprite: ImageBitma
     const g = full.getContext('2d')!;
     g.drawImage(cutBmp, 0, 0);
     const img = g.getImageData(0, 0, full.width, full.height);
-    largestComponent(img);
+    dropSpecks(img);
     g.putImageData(img, 0, 0);
     const box = alphaBBox(img);
     if (!box || box.w * box.h < cutBmp.width * cutBmp.height * 0.01) throw new Error('empty mask');
@@ -136,7 +137,7 @@ export async function makeSprite(bmp: ImageBitmap): Promise<{ sprite: ImageBitma
     return { sprite: await createImageBitmap(scale(full, box.x, box.y, box.w, box.h, f.w, f.h)), fallback: false };
   } catch {
     const s = Math.min(bmp.width, bmp.height);
-    const side = Math.min(MAX_SPRITE.w, MAX_SPRITE.h);
+    const side = FALLBACK_SIDE;
     const c = scale(bmp, (bmp.width - s) >> 1, (bmp.height - s) >> 1, s, s, side, side);
     const g = c.getContext('2d')!;
     g.strokeStyle = PALETTE.cream;

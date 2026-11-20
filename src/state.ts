@@ -1,5 +1,4 @@
 // Persisted preferences only (SPEC §9: never photos). Storage can throw or be empty (private mode), so every access is guarded.
-import { SONGS } from './audio/songs.ts';
 import { BACKGROUNDS } from './assets/manifest.ts';
 import { DEFAULT_MESSAGE } from './render/text.ts';
 
@@ -35,19 +34,18 @@ export const prefs = {
   set soundOn(v: boolean) {
     write('sound', v ? 'on' : 'off');
   },
-  get song(): number {
-    const v = Number(read('song'));
-    return Number.isInteger(v) && v >= 0 && v < SONGS.length ? v : 0;
-  },
-  set song(v: number) {
-    write('song', String(v));
-  },
   // letter text (SPEC §9 allows the last message and name); callers sanitise
   get message(): string {
     return read('message') ?? DEFAULT_MESSAGE;
   },
   set message(v: string) {
     write('message', v);
+  },
+  get note(): string {
+    return read('note') ?? '';
+  },
+  set note(v: string) {
+    write('note', v);
   },
   get name(): string {
     return read('name') ?? '';

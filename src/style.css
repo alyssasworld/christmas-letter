@@ -44,16 +44,36 @@ button {
 }
 canvas,
 #bg,
+#bg-prev,
 .icon,
 .px-btn {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
-#bg {
+#bg,
+#bg-prev {
   position: fixed;
   inset: 0;
   background-repeat: no-repeat;
+}
+/* Background crossfade: the old scene is frozen on this layer and fades out over the new one. Reduced motion: instant. */
+#bg-prev {
+  opacity: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #bg-prev.fade {
+    animation: bg-fade 0.4s ease-out;
+  }
+}
+@keyframes bg-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 #globe-screen {
@@ -194,6 +214,9 @@ canvas,
   font-size: calc(var(--btn-font) * 100 / 3);
 }
 .link {
+  /* flex centring so the <a> lines up with the <button> (buttons centre their text, anchors don't) */
+  display: inline-flex;
+  align-items: center;
   background: none;
   border: 0;
   padding: 8px 4px;
@@ -376,6 +399,9 @@ dialog::backdrop {
     opacity: 0.3;
   }
 }
+#edit-note-btn {
+  z-index: 1; /* DOM order is the tab order; the note wins where its target overlaps the name's */
+}
 /* after the first edit they only show on hover or focus */
 #letter-screen.edited .edit-hit {
   animation: none;
@@ -404,8 +430,10 @@ dialog::backdrop {
   image-rendering: pixelated;
 }
 #edit-message,
+#edit-note,
 #edit-name {
   position: absolute;
+  z-index: 2; /* an open field sits above every edit box, including the raised note box */
   margin: 0;
   padding: 0;
   border: 0;
@@ -415,6 +443,7 @@ dialog::backdrop {
   font-family: Pixelta, 'Pixelify Sans', monospace;
   resize: none;
   overflow: hidden;
+  text-align: center;
 }
 #edit-count {
   position: absolute;

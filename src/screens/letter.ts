@@ -1,13 +1,25 @@
 // Letter screen (SPEC §3.2): envelope transition, one canvas with paper, border, mini globe and text (so Phase 6 can encode it),
 // inline editing, and Make another.
-import { ASSETS } from '../assets/manifest.ts';
+import { ASSETS, FONT } from '../assets/manifest.ts';
 import type { createMusicBox } from '../audio/musicbox.ts';
 import { drawGlobe, type GlobeImages } from '../render/globeScene.ts';
 import { layoutLetter, loadLetterImages, LETTER, renderStatic, type TextInfo } from '../render/letterScene.ts';
 import { uiPixel } from '../render/scale.ts';
 import { createSnow, shake, stepSnow } from '../render/snow.ts';
 import { prefs } from '../state.ts';
-import { clampMessage, clampName, DEFAULT_MESSAGE, MAX_MESSAGE, MAX_NAME, MAX_ROWS, wrapMessage } from '../render/text.ts';
+import {
+  clampMessage,
+  clampName,
+  clampNote,
+  DEFAULT_MESSAGE,
+  LINE_H,
+  MAX_MESSAGE,
+  MAX_NAME,
+  MAX_NOTE,
+  noteGlyphScale,
+  MAX_ROWS,
+  wrapMessage,
+} from '../render/text.ts';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const FONTS = ["33px 'Pixelta Rounded'", '33px Pixelta'];
@@ -30,7 +42,8 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
 
   let message = clampMessage(prefs.message);
   let name = clampName(prefs.name);
-  let editing: 'message' | 'name' | null = null;
+  let note = clampNote(prefs.note);
+  let editing: 'message' | 'note' | 'name' | null = null;
   let L = layoutLetter({ w: innerWidth, h: innerHeight, dpr: 1 }, 3);
   let info: TextInfo;
   const dpr = () => window.devicePixelRatio || 1;
@@ -41,16 +54,17 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
 
   function describe() {
     const sign = `Love, ${name || 'your name not set yet'}`;
-    $('letter-text').textContent = `${message} ${sign}`;
+    const extra = note ? ` ${note}` : '';
+    $('letter-text').textContent = `${message}${extra} ${sign}`;
     canvas.setAttribute(
       'aria-label',
-      `A Christmas airmail letter with a small snowglobe. It says: ${message} ${sign}. Tap the message or the name to edit them.`,
+      `A Christmas airmail letter with a small snowglobe. It says: ${message}${extra} ${sign}. Tap the message, note or name to edit them.`,
     );
   }
 
   function renderLayer() {
     const { scale: s } = L;
-    info = renderStatic(layer, letterImg, L.orientation, s, message, name, editing ?? undefined);
+    info = renderStatic(layer, letterImg, L.orientation, s, message, name, note, editing ?? undefined, true);
     canvas.dataset.textFits = String(info.fits);
     canvas.dataset.lines = String(info.lines);
     canvas.dataset.fontPx = info.size.toFixed(2);
@@ -59,6 +73,8 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
     const box = (id: string, r: { x: number; y: number; w: number; h: number }) =>
       place($(id), { x: r.x - pad, y: r.y - pad, w: r.w + 2 * pad, h: r.h + 2 * pad });
     box('edit-message-btn', info.message);
+    // an empty note with no room for its prompt still gets a one-line target
+    box('edit-note-btn', info.note.h ? info.note : { ...info.noteEdit, h: info.noteEdit.h / 2 });
     box('edit-name-btn', info.sign);
   }
 
@@ -90,24 +106,34 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
   // inline editing
   const ta = $<HTMLTextAreaElement>('edit-message');
   const inp = $<HTMLInputElement>('edit-name');
+  const noteInp = $<HTMLTextAreaElement>('edit-note');
   const count = $('edit-count');
-  const field = () => (editing === 'message' ? ta : inp);
+  const field = () => (editing === 'message' ? ta : editing === 'note' ? noteInp : inp);
   const updateCount = () => {
     const v = field().value;
     count.textContent =
-      editing === 'message' ? `${v.length}/${MAX_MESSAGE} · ${wrapMessage(v).length}/${MAX_ROWS} lines` : `${v.length}/${MAX_NAME}`;
+      editing === 'message'
+        ? `${v.length}/${MAX_MESSAGE} · ${wrapMessage(v).length}/${MAX_ROWS} lines`
+        : `${v.length}/${editing === 'note' ? MAX_NOTE : MAX_NAME}`;
   };
 
-  function edit(which: 'message' | 'name') {
+  function edit(which: 'message' | 'note' | 'name') {
     editing = which;
     renderLayer(); // skips the text being edited
     const el = field();
     const m = which === 'message';
-    const r = m ? info.messageEdit : { x: info.nameX, y: info.sign.y, w: info.sign.x + info.sign.w - info.nameX, h: info.sign.h };
+    const r = m
+      ? info.messageEdit
+      : which === 'note'
+        ? info.noteEdit
+        : { x: info.nameX, y: info.sign.y, w: info.sign.x + info.sign.w - info.nameX, h: info.sign.h };
     place(el, r);
     // at least 16px so iOS doesn't zoom the page on focus
-    Object.assign(el.style, { fontSize: `max(16px, ${css(info.size)})`, lineHeight: `max(1.2em, ${css(36 * info.n)})` });
-    if (document.activeElement !== el) el.value = m ? message : name;
+    Object.assign(el.style, {
+      fontSize: `max(16px, ${css(m || which === 'name' ? info.size : noteGlyphScale(info.n) * FONT.nativeSize)})`,
+      lineHeight: `max(1.2em, ${css((which === 'note' ? noteGlyphScale(info.n) : 1) * LINE_H * info.n)})`,
+    });
+    if (document.activeElement !== el) el.value = m ? message : which === 'note' ? note : name;
     el.hidden = count.hidden = false;
     // counter sits just under the field
     Object.assign(count.style, { left: css(r.x), top: css(r.y + r.h) });
@@ -122,16 +148,17 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
     if (save) {
       screen.classList.add('edited'); // the dashed boxes stop pulsing once the user has found them
       if (which === 'message') prefs.message = message = clampMessage(v);
+      else if (which === 'note') prefs.note = note = clampNote(v);
       else prefs.name = name = clampName(v);
       describe();
     }
-    ta.hidden = inp.hidden = count.hidden = true;
+    ta.hidden = noteInp.hidden = inp.hidden = count.hidden = true;
     renderLayer();
-    $(which === 'message' ? 'edit-message-btn' : 'edit-name-btn').focus();
+    $(`edit-${which}-btn`).focus();
   }
-  for (const el of [ta, inp] as (HTMLTextAreaElement | HTMLInputElement)[]) {
+  for (const el of [ta, noteInp, inp] as (HTMLTextAreaElement | HTMLInputElement)[]) {
     el.addEventListener('input', () => {
-      const v = (el === ta ? clampMessage : clampName)(el.value);
+      const v = (el === ta ? clampMessage : el === noteInp ? clampNote : clampName)(el.value);
       if (v !== el.value) el.value = v;
       updateCount();
     });
@@ -144,6 +171,7 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
     };
   }
   $('edit-message-btn').addEventListener('click', () => edit('message'));
+  $('edit-note-btn').addEventListener('click', () => edit('note'));
   $('edit-name-btn').addEventListener('click', () => edit('name'));
 
   // the mini globe shakes like the big one: tap it, or Space/Enter while focused
@@ -179,19 +207,19 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
 
   // Save GIF: the encoder is lazy-loaded here, so first load never pays for it
   const saveBtn = $<HTMLButtonElement>('save-gif-btn');
-  const note = $('gif-note');
-  const NOTE = note.textContent!;
+  const gifNote = $('gif-note');
+  const NOTE = gifNote.textContent!;
   saveBtn.addEventListener('click', async () => {
     stop(true); // an open edit is part of the letter
     saveBtn.disabled = true;
     saveBtn.textContent = 'Making GIF…';
-    note.textContent = 'Making GIF…';
+    gifNote.textContent = 'Making GIF…';
     const coarse = matchMedia('(pointer: coarse)').matches;
     try {
       const { encodeLetterGif } = await import('../render/gif.ts');
       let last = 0;
-      const { blob } = await encodeLetterGif({ img, letterImg, o: L.orientation, message, name }, L.scale, coarse, (n, total) => {
-        if (n - last >= 10) note.textContent = `Making GIF… ${Math.round((n / total) * 100)}%`;
+      const { blob } = await encodeLetterGif({ img, letterImg, o: L.orientation, message, name, note }, L.scale, coarse, (n, total) => {
+        if (n - last >= 10) gifNote.textContent = `Making GIF… ${Math.round((n / total) * 100)}%`;
         if (n - last >= 10) last = n;
       });
       const file = new File([blob], 'shake-a-memory.gif', { type: 'image/gif' });
@@ -199,9 +227,9 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
       // iOS rejects share() once the tap's activation has expired, so sharing waits for its own tap in the dialog
       showReady(blob, file, coarse, canShare);
       if (!coarse) dl.click(); // desktop: save straight away; the dialog says where it went
-      note.textContent = NOTE;
+      gifNote.textContent = NOTE;
     } catch {
-      note.textContent = "Couldn't make the GIF. Please try again.";
+      gifNote.textContent = "Couldn't make the GIF. Please try again.";
     } finally {
       saveBtn.disabled = false;
       saveBtn.textContent = 'Save GIF';
@@ -244,7 +272,8 @@ export async function mountLetterScreen({ music, img, reset }: Deps) {
     confirm.close();
     prefs.message = message = DEFAULT_MESSAGE;
     prefs.name = name = '';
-    note.textContent = NOTE;
+    prefs.note = note = '';
+    gifNote.textContent = NOTE;
     screen.hidden = true;
     globeScreen.hidden = false;
     reset();

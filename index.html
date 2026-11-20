@@ -22,6 +22,7 @@
   </head>
   <body>
     <div id="bg" aria-hidden="true"></div>
+    <div id="bg-prev" aria-hidden="true"></div>
 
     <!-- corner buttons live outside the screens so they stay on both (SPEC §3.2) -->
     <button class="icon-btn corner-left" id="bg-btn" type="button" aria-label="Change background"><i class="icon" data-icon="picture"></i></button>
@@ -47,7 +48,7 @@
     <main id="letter-screen" hidden>
       <div class="envelope" id="envelope" aria-hidden="true" hidden></div>
       <p class="letter-hint" id="letter-hint">
-        Tap the message or your name to edit
+        Tap the message, note or your name to edit
         <svg class="pencil" viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
           <path fill="#ea99f4" d="M6 0h2v1H7v1H6z" />
           <path fill="#ffeb14" d="M5 1h1v1h1v1H6v1H5V3H4V2h1zM3 3h1v1h1v1H4v1H3V5H2V4h1zM1 5h1v1H1z" />
@@ -58,8 +59,10 @@
       <div class="letter-wrap" id="letter-wrap">
         <canvas id="letter" role="img" aria-label="" tabindex="0"></canvas>
         <button class="edit-hit" id="edit-message-btn" type="button" aria-label="Edit message"></button>
+        <button class="edit-hit" id="edit-note-btn" type="button" aria-label="Edit note"></button>
         <button class="edit-hit" id="edit-name-btn" type="button" aria-label="Edit name"></button>
         <textarea id="edit-message" hidden aria-label="Message" aria-describedby="edit-count" maxlength="54" spellcheck="false"></textarea>
+        <textarea id="edit-note" hidden aria-label="Note" aria-describedby="edit-count" maxlength="60" spellcheck="false"></textarea>
         <input id="edit-name" hidden aria-label="Your name" aria-describedby="edit-count" maxlength="16" spellcheck="false" autocomplete="off" />
         <span id="edit-count" hidden></span>
         <p class="sr-only" id="letter-text"></p>
@@ -101,7 +104,7 @@
         <p><strong>Your photos stay on your device.</strong></p>
         <p>This app runs entirely in your browser. Your photo is never uploaded, stored, or sent to me, to any AI service, or to any third party.</p>
         <p>This uses @imgly/background-removal, which is an in-browser background removal, meaning that your images remain secure within your own devices: refreshing or closing the page clears it.</p>
-        <p>The web app only remembers your sound, song and background choices and your last message, in your own browser.</p>
+        <p>The web app only remembers your sound and background choices and what you write, in your own browser.</p>
         <p>GIFs you save go only where you choose to share them.</p>
       </div>
       <h3>Credits</h3>

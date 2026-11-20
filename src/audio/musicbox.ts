@@ -37,7 +37,7 @@ export function createMusicBox() {
   let master: GainNode;
   let energy = 0;
   let on = prefs.soundOn;
-  let song = prefs.song;
+  let song = 0; // every visit starts with Jingle Bells
   let idx = 0;
   let next = 0;
   let playing = false;
@@ -56,7 +56,7 @@ export function createMusicBox() {
       next += (beats * 60) / (bpm * tempoFor(energy));
       if (++idx >= notes.length) {
         idx = 0;
-        prefs.song = song = (song + 1) % SONGS.length;
+        song = (song + 1) % SONGS.length;
       }
     }
   }
