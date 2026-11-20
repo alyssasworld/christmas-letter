@@ -38,12 +38,11 @@ export function fitSize(w: number, h: number, maxW: number, maxH: number) {
   return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
 }
 
-/** In place: zero every pixel (alpha, thresholded at 128) outside the largest 8-connected component; kept pixels are untouched. */
-export function largestComponent({ data, width, height }: Pixels) {
+/** In place: zero every pixel (alpha, thresholded at 128) in 8-connected components under 2% of the largest one's size, so a held cat or a loosely joined arm survives; kept pixels are untouched. */
+export function dropSpecks({ data, width, height }: Pixels) {
   const label = new Int32Array(width * height); // 0 = unvisited/transparent
   const stack: number[] = [];
-  let best = 0;
-  let bestSize = 0;
+  const sizes = [0]; // sizes[label]
   let n = 0;
   for (let s = 0; s < label.length; s++) {
     if (label[s] || data[s * 4 + 3] <= 128) continue;
@@ -67,9 +66,10 @@ export function largestComponent({ data, width, height }: Pixels) {
           stack.push(j);
         }
     }
-    if (size > bestSize) [best, bestSize] = [n, size];
+    sizes.push(size);
   }
-  for (let i = 0; i < label.length; i++) if (label[i] !== best) data.fill(0, i * 4, i * 4 + 4);
+  const min = Math.max(...sizes) * 0.02;
+  for (let i = 0; i < label.length; i++) if (sizes[label[i]] < min) data.fill(0, i * 4, i * 4 + 4);
 }
 
 /** Area-average-ish downscale: halve repeatedly with smoothing on, then a final step (keeps faces from going noisy). */
@@ -129,7 +129,7 @@ export async function makeSprite(bmp: ImageBitmap): Promise<{ sprite: ImageBitma
     const g = full.getContext('2d')!;
     g.drawImage(cutBmp, 0, 0);
     const img = g.getImageData(0, 0, full.width, full.height);
-    largestComponent(img);
+    dropSpecks(img);
     g.putImageData(img, 0, 0);
     const box = alphaBBox(img);
     if (!box || box.w * box.h < cutBmp.width * cutBmp.height * 0.01) throw new Error('empty mask');
