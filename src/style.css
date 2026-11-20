@@ -423,6 +423,7 @@ dialog::backdrop {
   font-family: Pixelta, 'Pixelify Sans', monospace;
   resize: none;
   overflow: hidden;
+  text-align: center;
 }
 #edit-count {
   position: absolute;
